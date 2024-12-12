@@ -28,6 +28,7 @@ kernel_versions_and_projects = {
 
 def get_real_modules_list(common_modules, platform_modules):
     real_modules = []
+    out_of_tree_platforms_modules = []
     for k in common_modules:
         real_modules.append(k)
 
@@ -36,8 +37,11 @@ def get_real_modules_list(common_modules, platform_modules):
     for k,v in platform_modules.items():
         for plat in v.split(" "):
             if (plat in mgk_platforms) and (k not in real_modules):
-                real_modules.append(k)
-    return real_modules
+                if k.startswith("//vendor"):
+                    out_of_tree_platforms_modules.append(k)
+                else:
+                    real_modules.append(k)
+    return real_modules, out_of_tree_platforms_modules
 
 def get_kleaf_modules_list(kleaf_modules):
     kleaf_switch = {}
@@ -96,13 +100,13 @@ def define_mgk(
         kleaf_device_modules_srcs,
         kleaf_device_modules_kconfigs,
         kleaf_device_modules,
-        kleaf_platform_device_modules,
+        kleaf_platform_modules,
         kleaf_eng_device_modules,
-        kleaf_platform_eng_device_modules,
+        kleaf_platform_eng_modules,
         kleaf_userdebug_device_modules,
-        kleaf_platform_userdebug_device_modules,
+        kleaf_platform_userdebug_modules,
         kleaf_user_device_modules,
-        kleaf_platform_user_device_modules,
+        kleaf_platform_user_modules,
         device_modules,
         platform_device_modules,
         device_eng_modules,
@@ -133,23 +137,26 @@ def define_mgk(
         ),
     )
 
-    # get kleaf modules for internal and customer
-    kleaf_internal, kleaf_customer, kleaf_msync2_customer = get_kleaf_modules_list(kleaf_modules)
-    kleaf_eng_internal, kleaf_eng_customer, kleaf_eng_msync2_customer = get_kleaf_modules_list(kleaf_eng_modules)
-    kleaf_userdebug_internal, kleaf_userdebug_customer, kleaf_userdebug_msync2_customer = get_kleaf_modules_list(kleaf_userdebug_modules)
-    kleaf_user_internal, kleaf_user_customer, kleaf_user_msync2_customer = get_kleaf_modules_list(kleaf_user_modules)
+
 
     # deal with device modules list
-    real_device_modules = get_real_modules_list(device_modules, platform_device_modules)
-    real_device_eng_modules = get_real_modules_list(device_eng_modules, platform_device_eng_modules)
-    real_device_userdebug_modules = get_real_modules_list(device_userdebug_modules, platform_device_userdebug_modules)
-    real_device_user_modules = get_real_modules_list(device_user_modules, platform_device_user_modules)
+    real_device_modules,_ = get_real_modules_list(device_modules, platform_device_modules)
+    real_device_eng_modules,_ = get_real_modules_list(device_eng_modules, platform_device_eng_modules)
+    real_device_userdebug_modules,_ = get_real_modules_list(device_userdebug_modules, platform_device_userdebug_modules)
+    real_device_user_modules,_ = get_real_modules_list(device_user_modules, platform_device_user_modules)
 
     # deal with DDK device modules list
-    real_kleaf_device_modules = get_real_modules_list(kleaf_device_modules, kleaf_platform_device_modules)
-    real_kleaf_eng_device_modules = get_real_modules_list(kleaf_eng_device_modules, kleaf_platform_eng_device_modules)
-    real_kleaf_userdebug_device_modules = get_real_modules_list(kleaf_userdebug_device_modules, kleaf_platform_userdebug_device_modules)
-    real_kleaf_user_device_modules = get_real_modules_list(kleaf_user_device_modules, kleaf_platform_user_device_modules)
+    real_kleaf_device_modules,out_of_tree_platforms_modules = get_real_modules_list(kleaf_device_modules, kleaf_platform_modules)
+    real_kleaf_eng_device_modules,eng_out_of_tree_platforms_modules = get_real_modules_list(kleaf_eng_device_modules, kleaf_platform_eng_modules)
+    real_kleaf_userdebug_device_modules,userdebug_out_of_tree_platforms_modules = get_real_modules_list(kleaf_userdebug_device_modules, kleaf_platform_userdebug_modules)
+    real_kleaf_user_device_modules,user_out_of_tree_platforms_modules = get_real_modules_list(kleaf_user_device_modules, kleaf_platform_user_modules)
+
+    # get kleaf modules for internal and customer
+    kleaf_internal, kleaf_customer, kleaf_msync2_customer = get_kleaf_modules_list(kleaf_modules + out_of_tree_platforms_modules)
+    kleaf_eng_internal, kleaf_eng_customer, kleaf_eng_msync2_customer = get_kleaf_modules_list(kleaf_eng_modules + eng_out_of_tree_platforms_modules)
+    kleaf_userdebug_internal, kleaf_userdebug_customer, kleaf_userdebug_msync2_customer = get_kleaf_modules_list(kleaf_userdebug_modules + userdebug_out_of_tree_platforms_modules)
+    kleaf_user_internal, kleaf_user_customer, kleaf_user_msync2_customer = get_kleaf_modules_list(kleaf_user_modules + user_out_of_tree_platforms_modules)
+
 
     for build in ["eng", "userdebug", "user", "ack"]:
         ack_build = build
