@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("//build/kernel/kleaf:workspace.bzl", "define_kleaf_workspace")
+#load("//build/kernel/kleaf:workspace.bzl", "define_kleaf_workspace")
 
 load("//build/bazel_mgk_rules:kleaf/key_value_repo.bzl", "key_value_repo")
 key_value_repo(
@@ -20,11 +20,11 @@ key_value_repo(
 )
 
 load("@mgk_info//:dict.bzl","KERNEL_VERSION")
-define_kleaf_workspace(common_kernel_package = "@//"+KERNEL_VERSION)
+#define_kleaf_workspace(common_kernel_package = "@//"+KERNEL_VERSION)
 
 # Optional epilog for analysis testing.
-load("//build/kernel/kleaf:workspace_epilog.bzl", "define_kleaf_workspace_epilog")
-define_kleaf_workspace_epilog()
+#load("//build/kernel/kleaf:workspace_epilog.bzl", "define_kleaf_workspace_epilog")
+#define_kleaf_workspace_epilog()
 
 new_local_repository(
     name="mgk_internal",
