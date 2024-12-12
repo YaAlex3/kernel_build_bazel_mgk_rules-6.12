@@ -26,26 +26,17 @@ kernel_versions_and_projects = {
    "mainline": "mgk_64_kmainline",
 }
 
-def get_real_modules_list(common_modules, platform_modules, ddk=0):
+def get_real_modules_list(common_modules, platform_modules):
     real_modules = []
     for k in common_modules:
-        if ddk == 1:
-            real_modules.append(k)
-        else:
-            file_path = paths.dirname(k) + "/*"
-            if native.glob([file_path]):
-                real_modules.append(k)
+        real_modules.append(k)
+
 
     mgk_platforms = [paths.dirname(p) for p in native.glob(["*/mgk.enabled"])]
     for k,v in platform_modules.items():
         for plat in v.split(" "):
             if (plat in mgk_platforms) and (k not in real_modules):
-                if ddk == 1:
-                    real_modules.append(k)
-                else:
-                    file_path = paths.dirname(k) + "/*"
-                    if native.glob([file_path]):
-                        real_modules.append(k)
+                real_modules.append(k)
     return real_modules
 
 def get_kleaf_modules_list(kleaf_modules):
@@ -102,6 +93,7 @@ def define_mgk(
         common_eng_modules,
         common_userdebug_modules,
         common_user_modules,
+        kleaf_device_modules_srcs,
         kleaf_device_modules_kconfigs,
         kleaf_device_modules,
         kleaf_platform_device_modules,
@@ -154,10 +146,10 @@ def define_mgk(
     real_device_user_modules = get_real_modules_list(device_user_modules, platform_device_user_modules)
 
     # deal with DDK device modules list
-    real_kleaf_device_modules = get_real_modules_list(kleaf_device_modules, kleaf_platform_device_modules, ddk=1)
-    real_kleaf_eng_device_modules = get_real_modules_list(kleaf_eng_device_modules, kleaf_platform_eng_device_modules, ddk=1)
-    real_kleaf_userdebug_device_modules = get_real_modules_list(kleaf_userdebug_device_modules, kleaf_platform_userdebug_device_modules, ddk=1)
-    real_kleaf_user_device_modules = get_real_modules_list(kleaf_user_device_modules, kleaf_platform_user_device_modules, ddk=1)
+    real_kleaf_device_modules = get_real_modules_list(kleaf_device_modules, kleaf_platform_device_modules)
+    real_kleaf_eng_device_modules = get_real_modules_list(kleaf_eng_device_modules, kleaf_platform_eng_device_modules)
+    real_kleaf_userdebug_device_modules = get_real_modules_list(kleaf_userdebug_device_modules, kleaf_platform_userdebug_device_modules)
+    real_kleaf_user_device_modules = get_real_modules_list(kleaf_user_device_modules, kleaf_platform_user_device_modules)
 
     for build in ["eng", "userdebug", "user", "ack"]:
         ack_build = build
@@ -465,7 +457,7 @@ def define_mgk(
 
     kernel_module(
         name = "{}_modules.eng".format(name),
-        srcs = [":{}_sources".format(name)],
+        srcs = [":{}_sources".format(name)] + kleaf_device_modules_srcs,
         outs = real_device_modules + real_device_eng_modules,
         kernel_build = ":{}.eng".format(name),
         deps = select({
@@ -477,7 +469,7 @@ def define_mgk(
     )
     kernel_module(
         name = "{}_modules.userdebug".format(name),
-        srcs = [":{}_sources".format(name)],
+        srcs = [":{}_sources".format(name)] + kleaf_device_modules_srcs,
         outs = real_device_modules + real_device_userdebug_modules,
         kernel_build = ":{}.userdebug".format(name),
         deps = select({
@@ -489,7 +481,7 @@ def define_mgk(
     )
     kernel_module(
         name = "{}_modules.user".format(name),
-        srcs = [":{}_sources".format(name)],
+        srcs = [":{}_sources".format(name)] + kleaf_device_modules_srcs,
         outs = real_device_modules + real_device_user_modules,
         kernel_build = ":{}.user".format(name),
         deps = select({
@@ -501,7 +493,7 @@ def define_mgk(
     )
     kernel_module(
         name = "{}_modules.ack".format(name),
-        srcs = [":{}_sources".format(name)],
+        srcs = [":{}_sources".format(name)] + kleaf_device_modules_srcs,
         outs = real_device_modules + real_device_user_modules,
         kernel_build = ":{}.ack".format(name),
         deps = select({

@@ -8,6 +8,7 @@ load(
 )
 
 load("@mgk_info//:kleaf_device_modules.bzl",
+    "kleaf_device_modules_srcs",
     "kleaf_eng_device_modules",
     "kleaf_userdebug_device_modules",
     "kleaf_user_device_modules",
@@ -54,7 +55,7 @@ def define_mgk_ko(
 
                 kernel_module(
                     name = "{}.{}.{}.{}".format(name, project, version, build),
-                    srcs = srcs,
+                    srcs = srcs + kleaf_device_modules_srcs,
                     outs = outs,
                     kernel_build = "//{}:{}.{}".format(device_modules_dir, project, build),
                     deps = ([
