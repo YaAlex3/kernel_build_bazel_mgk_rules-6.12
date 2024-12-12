@@ -151,6 +151,7 @@ def define_mgk(
             # for device module tree
             mgk_build_config(
                 name = "{}_build_config.{}".format(name, build),
+                arch = "arm64",
                 kernel_dir = select({
                     "//build/bazel_mgk_rules:kernel_version_6.1"     : "{}-{}".format(ack_dir, "6.1"),
                     "//build/bazel_mgk_rules:kernel_version_6.6"     : "{}-{}".format(ack_dir, "6.6"),
@@ -174,6 +175,7 @@ def define_mgk(
             # for android common kernel tree
             mgk_build_config(
                 name = "kernel_aarch64_{}_build_config.{}".format(name, build),
+                arch = "arm64",
                 kernel_dir = select({
                     "//build/bazel_mgk_rules:kernel_version_6.1"     : "{}-{}".format(ack_dir, "6.1"),
                     "//build/bazel_mgk_rules:kernel_version_6.6"     : "{}-{}".format(ack_dir, "6.6"),
@@ -457,6 +459,7 @@ def define_mgk(
 
 def _mgk_build_config_impl(ctx):
     content = []
+    content.append("ARCH={}".format(ctx.attr.arch))
     content.append("DEVICE_MODULES_DIR={}".format(ctx.attr.device_modules_dir))
     content.append("KERNEL_DIR={}".format(ctx.attr.kernel_dir))
     if ctx.attr.config_is_local[BuildSettingInfo].value:
@@ -520,6 +523,7 @@ mgk_build_config = rule(
     implementation = _mgk_build_config_impl,
     doc = "Defines a kernel build.config target.",
     attrs = {
+        "arch": attr.string(mandatory = True),
         "kernel_dir": attr.string(mandatory = True),
         "device_modules_dir": attr.string(mandatory = True),
         "defconfig": attr.string(mandatory = True),
