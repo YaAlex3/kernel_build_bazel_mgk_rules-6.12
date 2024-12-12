@@ -5,3 +5,11 @@ bool_flag(
     build_setting_default = len(glob(["internal/*_enable"])) > 0,
     visibility = ["//visibility:public"],
 )
+
+config_setting(
+    name = "mgk_internal_setting",
+    flag_values = {
+        ":mgk_internal" : "True",
+    },
+    visibility = ["//visibility:public"],
+)
