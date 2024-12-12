@@ -9,12 +9,8 @@ bool_flag(
 config_setting(name = "msync2_lic_set", flag_values = {":msync2_lic": "true"})
 
 selects.config_setting_group(
-    name = "msync2_lic_6.1_set",
-    match_all = [":msync2_lic_set", "@//build/bazel_mgk_rules:kernel_version_6.1"]
-)
-selects.config_setting_group(
-    name = "msync2_lic_6.6_set",
-    match_all = [":msync2_lic_set", "@//build/bazel_mgk_rules:kernel_version_6.6"]
+    name = "msync2_lic_6.12_set",
+    match_all = [":msync2_lic_set", "@//build/bazel_mgk_rules:kernel_version_6.12"]
 )
 selects.config_setting_group(
     name = "msync2_lic_mainline_set",
