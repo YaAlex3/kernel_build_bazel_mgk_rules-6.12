@@ -61,7 +61,7 @@ def define_mgk_ddk_ko(
                             srcs = srcs,
                             deps = [
                                 "//{}:headers".format(device_modules_dir),
-                            ] + (["//{}:{}_modules.{}".format(device_modules_dir, project, build)] if name.startswith("//vendor") else [])
+                            ] + (["//{}:{}_modules.{}".format(device_modules_dir, project, build)] if native.package_name().startswith("vendor") else [])
                             + ["{}.{}.{}.{}".format(m, project, version, build) for m in ko_deps]
                             + header_deps,
                             hdrs = hdrs,
@@ -85,7 +85,7 @@ def define_mgk_ddk_ko(
                         srcs = srcs,
                         deps = [
                             "//{}:headers".format(device_modules_dir),
-                        ] + (["//{}:{}_modules.{}".format(device_modules_dir, project, build)] if name.startswith("//vendor") else [])
+                        ] + (["//{}:{}_modules.{}".format(device_modules_dir, project, build)] if native.package_name().startswith("vendor") else [])
                         + ["{}.{}.{}.{}".format(m, project, version, build) for m in ko_deps]
                         + header_deps,
                         hdrs = hdrs,
