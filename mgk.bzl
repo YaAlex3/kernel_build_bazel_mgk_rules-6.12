@@ -21,8 +21,7 @@ load("@mgk_info//:dict.bzl",
 )
 
 kernel_versions_and_projects = {
-   "6.1": "mgk_64_k61 mgk_64_aging_k61 mgk_64_entry_level_k61 mgk_64_fpga_k61 mgk_64_k61_thinmodem mgk_64_k61_wifi mgk_64_kasan_k61 mgk_64_khwasan_k61 mgk_64_pkvm_k61 mgk_64_vulscan_k61",
-   "6.6": "mgk_64_k66",
+   "6.12": "mgk_64_k612",
    "mainline": "mgk_64_kmainline",
 }
 
@@ -167,14 +166,12 @@ def define_mgk(
                 name = "{}_build_config.{}".format(name, build),
                 arch = "arm64",
                 kernel_dir = select({
-                    "//build/bazel_mgk_rules:kernel_version_6.1"     : "{}-{}".format(ack_dir, "6.1"),
-                    "//build/bazel_mgk_rules:kernel_version_6.6"     : "{}-{}".format(ack_dir, "6.6"),
+                    "//build/bazel_mgk_rules:kernel_version_6.12"     : "{}-{}".format(ack_dir, "6.12"),
                     "//build/bazel_mgk_rules:kernel_version_mainline": "{}-{}".format(ack_dir, "mainline"),
                     "//conditions:default"                           : ack_dir,
                 }),
                 device_modules_dir = select({
-                    "//build/bazel_mgk_rules:kernel_version_6.1"     : "kernel_device_modules-{}".format("6.1"),
-                    "//build/bazel_mgk_rules:kernel_version_6.6"     : "kernel_device_modules-{}".format("6.6"),
+                    "//build/bazel_mgk_rules:kernel_version_6.12"     : "kernel_device_modules-{}".format("6.12"),
                     "//build/bazel_mgk_rules:kernel_version_mainline": "kernel_device_modules-{}".format("mainline"),
                     "//conditions:default"                           : "kernel_device_modules",
                 }),
@@ -191,14 +188,12 @@ def define_mgk(
                 name = "kernel_aarch64_{}_build_config.{}".format(name, build),
                 arch = "arm64",
                 kernel_dir = select({
-                    "//build/bazel_mgk_rules:kernel_version_6.1"     : "{}-{}".format(ack_dir, "6.1"),
-                    "//build/bazel_mgk_rules:kernel_version_6.6"     : "{}-{}".format(ack_dir, "6.6"),
+                    "//build/bazel_mgk_rules:kernel_version_6.12"     : "{}-{}".format(ack_dir, "6.12"),
                     "//build/bazel_mgk_rules:kernel_version_mainline": "{}-{}".format(ack_dir, "mainline"),
                     "//conditions:default"                           : ack_dir,
                 }),
                 device_modules_dir = select({
-                    "//build/bazel_mgk_rules:kernel_version_6.1"     : "kernel_device_modules-{}".format("6.1"),
-                    "//build/bazel_mgk_rules:kernel_version_6.6"     : "kernel_device_modules-{}".format("6.6"),
+                    "//build/bazel_mgk_rules:kernel_version_6.12"     : "kernel_device_modules-{}".format("6.12"),
                     "//build/bazel_mgk_rules:kernel_version_mainline": "kernel_device_modules-{}".format("mainline"),
                     "//conditions:default"                           : "kernel_device_modules",
                 }),
@@ -214,8 +209,7 @@ def define_mgk(
             kernel_build(
                 name = "{}_kernel_aarch64.{}".format(name, build),
                 srcs = select({
-                    "//build/bazel_mgk_rules:kernel_version_6.1"     : ["//{}-{}:kernel_aarch64_sources".format(ack_dir, "6.1")],
-                    "//build/bazel_mgk_rules:kernel_version_6.6"     : ["//{}-{}:kernel_aarch64_sources".format(ack_dir, "6.6")],
+                    "//build/bazel_mgk_rules:kernel_version_6.12"     : ["//{}-{}:kernel_aarch64_sources".format(ack_dir, "6.12")],
                     "//build/bazel_mgk_rules:kernel_version_mainline": ["//{}-{}:kernel_aarch64_sources".format(ack_dir, "mainline")],
                     "//conditions:default"                           : ["//{}:kernel_aarch64_sources".format(ack_dir)],
                 }) + [
@@ -231,8 +225,7 @@ def define_mgk(
                     "modules",
                 ],
                 ddk_module_headers = select({
-                    "//build/bazel_mgk_rules:kernel_version_6.1"     : ["//{}-{}:all_headers_aarch64".format(ack_dir, "6.1")],
-                    "//build/bazel_mgk_rules:kernel_version_6.6"     : ["//{}-{}:all_headers_aarch64".format(ack_dir, "6.6")],
+                    "//build/bazel_mgk_rules:kernel_version_6.12"     : ["//{}-{}:all_headers_aarch64".format(ack_dir, "6.12")],
                     "//build/bazel_mgk_rules:kernel_version_mainline": ["//{}-{}:all_headers_aarch64".format(ack_dir, "mainline")],
                     "//conditions:default"                           : ["//{}:all_headers_aarch64".format(ack_dir)],
                 }),
@@ -248,8 +241,7 @@ def define_mgk(
             kernel_build(
                 name = "{}.{}".format(name, build),
                 srcs = select({
-                    "//build/bazel_mgk_rules:kernel_version_6.1"     : ["//{}-{}:kernel_aarch64_sources".format(ack_dir, "6.1")],
-                    "//build/bazel_mgk_rules:kernel_version_6.6"     : ["//{}-{}:kernel_aarch64_sources".format(ack_dir, "6.6")],
+                    "//build/bazel_mgk_rules:kernel_version_6.12"     : ["//{}-{}:kernel_aarch64_sources".format(ack_dir, "6.12")],
                     "//build/bazel_mgk_rules:kernel_version_mainline": ["//{}-{}:kernel_aarch64_sources".format(ack_dir, "mainline")],
                     "//conditions:default"                           : ["//{}:kernel_aarch64_sources".format(ack_dir)],
                 }) + [
@@ -266,15 +258,13 @@ def define_mgk(
                     "modules",
                 ],
                 ddk_module_headers = select({
-                    "//build/bazel_mgk_rules:kernel_version_6.1"     : ["//{}-{}:all_headers_aarch64".format(ack_dir, "6.1")],
-                    "//build/bazel_mgk_rules:kernel_version_6.6"     : ["//{}-{}:all_headers_aarch64".format(ack_dir, "6.6")],
+                    "//build/bazel_mgk_rules:kernel_version_6.12"     : ["//{}-{}:all_headers_aarch64".format(ack_dir, "6.12")],
                     "//build/bazel_mgk_rules:kernel_version_mainline": ["//{}-{}:all_headers_aarch64".format(ack_dir, "mainline")],
                     "//conditions:default"                           : ["//{}:all_headers_aarch64".format(ack_dir)],
                 }),
                 strip_modules = False,
                 base_kernel = select({
-                    "//build/bazel_mgk_rules:kernel_version_6.1"     : "//{}-{}:kernel_aarch64_debug".format(ack_dir, "6.1"),
-                    "//build/bazel_mgk_rules:kernel_version_6.6"     : "//{}-{}:kernel_aarch64_debug".format(ack_dir, "6.6"),
+                    "//build/bazel_mgk_rules:kernel_version_6.12"     : "//{}-{}:kernel_aarch64_debug".format(ack_dir, "6.12"),
                     "//build/bazel_mgk_rules:kernel_version_mainline": "//{}-{}:kernel_aarch64_debug".format(ack_dir, "mainline"),
                     "//conditions:default"                           : None,
                 }) if build == "ack" else ":{}_kernel_aarch64.{}".format(name, build),
@@ -292,8 +282,7 @@ def define_mgk(
             kernel_modules = [
                 ":{}_modules.{}".format(name, build),
             ] + select({
-                "//build/bazel_mgk_rules:kernel_version_6.1"     : ["{}.{}.{}.{}".format(m, name, "6.1", build) for m in kleaf_internal],
-                "//build/bazel_mgk_rules:kernel_version_6.6"     : ["{}.{}.{}.{}".format(m, name, "6.6", build) for m in kleaf_internal],
+                "//build/bazel_mgk_rules:kernel_version_6.12"     : ["{}.{}.{}.{}".format(m, name, "6.12", build) for m in kleaf_internal],
                 "//build/bazel_mgk_rules:kernel_version_mainline": ["{}.{}.{}.{}".format(m, name, "mainline", build) for m in kleaf_internal],
                 "//conditions:default"                           : ["{}.{}".format(m, build) for m in kleaf_internal],
             }),
@@ -310,8 +299,7 @@ def define_mgk(
             kernel_modules = [
                 ":{}_modules.{}".format(name, build),
             ] + select({
-                "//build/bazel_mgk_rules:kernel_version_6.1"     : ["{}.{}.{}.{}".format(m, name, "6.1", build) for m in kleaf_customer],
-                "//build/bazel_mgk_rules:kernel_version_6.6"     : ["{}.{}.{}.{}".format(m, name, "6.6", build) for m in kleaf_customer],
+                "//build/bazel_mgk_rules:kernel_version_6.12"     : ["{}.{}.{}.{}".format(m, name, "6.12", build) for m in kleaf_customer],
                 "//build/bazel_mgk_rules:kernel_version_mainline": ["{}.{}.{}.{}".format(m, name, "mainline", build) for m in kleaf_customer],
                 "//conditions:default"                           : ["{}.{}".format(m, build) for m in kleaf_customer],
             }),
@@ -328,25 +316,21 @@ def define_mgk(
             kernel_modules = [
                 ":{}_modules.{}".format(name, build),
             ] + select({
-                "//build/bazel_mgk_rules:kernel_version_6.1"     : ["{}.{}.{}.{}".format(m, name, "6.1", build) for m in (kleaf_internal + real_kleaf_device_modules)],
-                "//build/bazel_mgk_rules:kernel_version_6.6"     : ["{}.{}.{}.{}".format(m, name, "6.6", build) for m in (kleaf_internal + real_kleaf_device_modules)],
+                "//build/bazel_mgk_rules:kernel_version_6.12"     : ["{}.{}.{}.{}".format(m, name, "6.12", build) for m in (kleaf_internal + real_kleaf_device_modules)],
                 "//build/bazel_mgk_rules:kernel_version_mainline": ["{}.{}.{}.{}".format(m, name, "mainline", build) for m in (kleaf_internal + real_kleaf_device_modules)],
                 "//conditions:default"                           : ["{}.{}".format(m, build) for m in (kleaf_internal + real_kleaf_device_modules)],
             }) + (select({
-                "//build/bazel_mgk_rules:kernel_version_6.1"     : ["{}.{}.{}.{}".format(m, name, "6.1", build) for m in (kleaf_eng_internal + real_kleaf_eng_device_modules)],
-                "//build/bazel_mgk_rules:kernel_version_6.6"     : ["{}.{}.{}.{}".format(m, name, "6.6", build) for m in (kleaf_eng_internal + real_kleaf_eng_device_modules)],
+                "//build/bazel_mgk_rules:kernel_version_6.12"     : ["{}.{}.{}.{}".format(m, name, "6.12", build) for m in (kleaf_eng_internal + real_kleaf_eng_device_modules)],
                 "//build/bazel_mgk_rules:kernel_version_mainline": ["{}.{}.{}.{}".format(m, name, "mainline", build) for m in (kleaf_eng_internal + real_kleaf_eng_device_modules)],
                 "//conditions:default"                           : ["{}.{}".format(m, build) for m in (kleaf_eng_internal + real_kleaf_eng_device_modules)],
             }) if build == "eng" else [])
               + (select({
-                "//build/bazel_mgk_rules:kernel_version_6.1"     : ["{}.{}.{}.{}".format(m, name, "6.1", build) for m in (kleaf_userdebug_internal + real_kleaf_userdebug_device_modules)],
-                "//build/bazel_mgk_rules:kernel_version_6.6"     : ["{}.{}.{}.{}".format(m, name, "6.6", build) for m in (kleaf_userdebug_internal + real_kleaf_userdebug_device_modules)],
+                "//build/bazel_mgk_rules:kernel_version_6.12"     : ["{}.{}.{}.{}".format(m, name, "6.12", build) for m in (kleaf_userdebug_internal + real_kleaf_userdebug_device_modules)],
                 "//build/bazel_mgk_rules:kernel_version_mainline": ["{}.{}.{}.{}".format(m, name, "mainline", build) for m in (kleaf_userdebug_internal + real_kleaf_userdebug_device_modules)],
                 "//conditions:default"                           : ["{}.{}".format(m, build) for m in (kleaf_userdebug_internal + real_kleaf_userdebug_device_modules)],
             }) if build == "userdebug" else [])
               + (select({
-                "//build/bazel_mgk_rules:kernel_version_6.1"     : ["{}.{}.{}.{}".format(m, name, "6.1", build) for m in (kleaf_user_internal + real_kleaf_user_device_modules)],
-                "//build/bazel_mgk_rules:kernel_version_6.6"     : ["{}.{}.{}.{}".format(m, name, "6.6", build) for m in (kleaf_user_internal + real_kleaf_user_device_modules)],
+                "//build/bazel_mgk_rules:kernel_version_6.12"     : ["{}.{}.{}.{}".format(m, name, "6.12", build) for m in (kleaf_user_internal + real_kleaf_user_device_modules)],
                 "//build/bazel_mgk_rules:kernel_version_mainline": ["{}.{}.{}.{}".format(m, name, "mainline", build) for m in (kleaf_user_internal + real_kleaf_user_device_modules)],
                 "//conditions:default"                           : ["{}.{}".format(m, build) for m in (kleaf_user_internal + real_kleaf_user_device_modules)],
             }) if build == "user" else []),
@@ -356,8 +340,7 @@ def define_mgk(
             copy_to_dist_dir(
                 name = "{}_internal_dist.{}".format(name, build),
                 data = select({
-                    "//build/bazel_mgk_rules:kernel_version_6.1"     : ["//{}-{}:kernel_aarch64_debug".format("common", "6.1")],
-                    "//build/bazel_mgk_rules:kernel_version_6.6"     : ["//{}-{}:kernel_aarch64_debug".format("common", "6.6")],
+                    "//build/bazel_mgk_rules:kernel_version_6.12"     : ["//{}-{}:kernel_aarch64_debug".format("common", "6.12")],
                     "//build/bazel_mgk_rules:kernel_version_mainline": ["//{}-{}:kernel_aarch64_debug".format("common", "mainline")],
                     "//conditions:default"                           : [],
                 }) + [
@@ -370,13 +353,11 @@ def define_mgk(
             copy_to_dist_dir(
                 name = "{}_internal_dist.{}".format(name, build),
                 data = select({
-                    "//build/bazel_mgk_rules:kernel_version_6.1"     : [":{}_kernel_aarch64.{}".format(name, build)],
-                    "//build/bazel_mgk_rules:kernel_version_6.6"     : [":{}_kernel_aarch64.{}".format(name, build)],
+                    "//build/bazel_mgk_rules:kernel_version_6.12"     : [":{}_kernel_aarch64.{}".format(name, build)],
                     "//build/bazel_mgk_rules:kernel_version_mainline": [":{}_kernel_aarch64.{}".format(name, build)],
                     "//conditions:default"                           : ["//kernel:kernel_aarch64.{}".format(build)],
                 }) + (select({
-                    "//build/bazel_mgk_rules:kernel_version_6.1"     : [":{}_kernel_aarch64.{}/{}".format(name, build, m) for m in common_modules],
-                    "//build/bazel_mgk_rules:kernel_version_6.6"     : [":{}_kernel_aarch64.{}/{}".format(name, build, m) for m in common_modules],
+                    "//build/bazel_mgk_rules:kernel_version_6.12"     : [":{}_kernel_aarch64.{}/{}".format(name, build, m) for m in common_modules],
                     "//build/bazel_mgk_rules:kernel_version_mainline": [":{}_kernel_aarch64.{}/{}".format(name, build, m) for m in common_modules],
                     "//conditions:default"                           : ["//kernel:kernel_aarch64.{}/{}".format(build, m) for m in common_modules],
                 }) if ack_build == "ack" else [])
@@ -392,31 +373,26 @@ def define_mgk(
             kernel_modules = [
                 ":{}_modules.{}".format(name, build),
             ] + select({
-                "//build/bazel_mgk_rules:kernel_version_6.1"     : ["{}.{}.{}.{}".format(m, name, "6.1", build) for m in (kleaf_customer + real_kleaf_device_modules)],
-                "//build/bazel_mgk_rules:kernel_version_6.6"     : ["{}.{}.{}.{}".format(m, name, "6.6", build) for m in (kleaf_customer + real_kleaf_device_modules)],
+                "//build/bazel_mgk_rules:kernel_version_6.12"     : ["{}.{}.{}.{}".format(m, name, "6.12", build) for m in (kleaf_customer + real_kleaf_device_modules)],
                 "//build/bazel_mgk_rules:kernel_version_mainline": ["{}.{}.{}.{}".format(m, name, "mainline", build) for m in (kleaf_customer + real_kleaf_device_modules)],
                 "//conditions:default"                           : ["{}.{}".format(m, build) for m in (kleaf_customer + real_kleaf_device_modules)],
             }) + (select({
-                "//build/bazel_mgk_rules:kernel_version_6.1"     : ["{}.{}.{}.{}".format(m, name, "6.1", build) for m in (kleaf_eng_customer + real_kleaf_eng_device_modules)],
-                "//build/bazel_mgk_rules:kernel_version_6.6"     : ["{}.{}.{}.{}".format(m, name, "6.6", build) for m in (kleaf_eng_customer + real_kleaf_eng_device_modules)],
+                "//build/bazel_mgk_rules:kernel_version_6.12"     : ["{}.{}.{}.{}".format(m, name, "6.12", build) for m in (kleaf_eng_customer + real_kleaf_eng_device_modules)],
                 "//build/bazel_mgk_rules:kernel_version_mainline": ["{}.{}.{}.{}".format(m, name, "mainline", build) for m in (kleaf_eng_customer + real_kleaf_eng_device_modules)],
                 "//conditions:default"                           : ["{}.{}".format(m, build) for m in (kleaf_eng_customer + real_kleaf_eng_device_modules)],
             }) if build == "eng" else [])
               + (select({
-                "//build/bazel_mgk_rules:kernel_version_6.1"     : ["{}.{}.{}.{}".format(m, name, "6.1", build) for m in (kleaf_userdebug_customer + real_kleaf_userdebug_device_modules)],
-                "//build/bazel_mgk_rules:kernel_version_6.6"     : ["{}.{}.{}.{}".format(m, name, "6.6", build) for m in (kleaf_userdebug_customer + real_kleaf_userdebug_device_modules)],
+                "//build/bazel_mgk_rules:kernel_version_6.12"     : ["{}.{}.{}.{}".format(m, name, "6.12", build) for m in (kleaf_userdebug_customer + real_kleaf_userdebug_device_modules)],
                 "//build/bazel_mgk_rules:kernel_version_mainline": ["{}.{}.{}.{}".format(m, name, "mainline", build) for m in (kleaf_userdebug_customer + real_kleaf_userdebug_device_modules)],
                 "//conditions:default"                           : ["{}.{}".format(m, build) for m in (kleaf_userdebug_customer + real_kleaf_userdebug_device_modules)],
             }) if build == "userdebug" else [])
               + (select({
-                "//build/bazel_mgk_rules:kernel_version_6.1"     : ["{}.{}.{}.{}".format(m, name, "6.1", build) for m in (kleaf_user_customer + real_kleaf_user_device_modules)],
-                "//build/bazel_mgk_rules:kernel_version_6.6"     : ["{}.{}.{}.{}".format(m, name, "6.6", build) for m in (kleaf_user_customer + real_kleaf_user_device_modules)],
+                "//build/bazel_mgk_rules:kernel_version_6.12"     : ["{}.{}.{}.{}".format(m, name, "6.12", build) for m in (kleaf_user_customer + real_kleaf_user_device_modules)],
                 "//build/bazel_mgk_rules:kernel_version_mainline": ["{}.{}.{}.{}".format(m, name, "mainline", build) for m in (kleaf_user_customer + real_kleaf_user_device_modules)],
                 "//conditions:default"                           : ["{}.{}".format(m, build) for m in (kleaf_user_customer + real_kleaf_user_device_modules)],
             }) if build == "user" else [])
               + (select({
-                "@mgk_ko//:msync2_lic_6.1_set": ["//vendor/mediatek/kernel_modules/msync2_frd_cus/build:msync2_frd_cus.{}.{}.{}".format(name, "6.1", build)],
-                "@mgk_ko//:msync2_lic_6.6_set": ["//vendor/mediatek/kernel_modules/msync2_frd_cus/build:msync2_frd_cus.{}.{}.{}".format(name, "6.6", build)],
+                "@mgk_ko//:msync2_lic_6.12_set": ["//vendor/mediatek/kernel_modules/msync2_frd_cus/build:msync2_frd_cus.{}.{}.{}".format(name, "6.12", build)],
                 "@mgk_ko//:msync2_lic_mainline_set": ["//vendor/mediatek/kernel_modules/msync2_frd_cus/build:msync2_frd_cus.{}.{}.{}".format(name, "mainline", build)],
                 "//conditions:default": [],
             }) if kleaf_msync2_customer == 1 else []),
@@ -426,8 +402,7 @@ def define_mgk(
             copy_to_dist_dir(
                 name = "{}_customer_dist.{}".format(name, build),
                 data = select({
-                    "//build/bazel_mgk_rules:kernel_version_6.1"     : ["//{}-{}:kernel_aarch64_debug".format("common", "6.1")],
-                    "//build/bazel_mgk_rules:kernel_version_6.6"     : ["//{}-{}:kernel_aarch64_debug".format("common", "6.6")],
+                    "//build/bazel_mgk_rules:kernel_version_6.12"     : ["//{}-{}:kernel_aarch64_debug".format("common", "6.12")],
                     "//build/bazel_mgk_rules:kernel_version_mainline": ["//{}-{}:kernel_aarch64_debug".format("common", "mainline")],
                     "//conditions:default"                           : [],
                 }) + [
@@ -440,13 +415,11 @@ def define_mgk(
             copy_to_dist_dir(
                 name = "{}_customer_dist.{}".format(name, build),
                 data = select({
-                    "//build/bazel_mgk_rules:kernel_version_6.1"     : [":{}_kernel_aarch64.{}".format(name, build)],
-                    "//build/bazel_mgk_rules:kernel_version_6.6"     : [":{}_kernel_aarch64.{}".format(name, build)],
+                    "//build/bazel_mgk_rules:kernel_version_6.12"     : [":{}_kernel_aarch64.{}".format(name, build)],
                     "//build/bazel_mgk_rules:kernel_version_mainline": [":{}_kernel_aarch64.{}".format(name, build)],
                     "//conditions:default"                           : ["//kernel:kernel_aarch64.{}".format(build)],
                 }) + (select({
-                     "//build/bazel_mgk_rules:kernel_version_6.1"     : [":{}_kernel_aarch64.{}/{}".format(name, build, m) for m in common_modules],
-                     "//build/bazel_mgk_rules:kernel_version_6.6"     : [":{}_kernel_aarch64.{}/{}".format(name, build, m) for m in common_modules],
+                     "//build/bazel_mgk_rules:kernel_version_6.12"     : [":{}_kernel_aarch64.{}/{}".format(name, build, m) for m in common_modules],
                      "//build/bazel_mgk_rules:kernel_version_mainline": [":{}_kernel_aarch64.{}/{}".format(name, build, m) for m in common_modules],
                      "//conditions:default"                           : ["//kernel:kernel_aarch64.{}/{}".format(build, m) for m in common_modules],
                 }) if ack_build == "ack" else [])
@@ -463,8 +436,7 @@ def define_mgk(
         outs = real_device_modules + real_device_eng_modules,
         kernel_build = ":{}.eng".format(name),
         deps = select({
-            "//build/bazel_mgk_rules:kernel_version_6.1"     : ["{}.{}.{}.eng".format(m, name, "6.1") for m in (real_kleaf_device_modules + real_kleaf_eng_device_modules)],
-            "//build/bazel_mgk_rules:kernel_version_6.6"     : ["{}.{}.{}.eng".format(m, name, "6.6") for m in (real_kleaf_device_modules + real_kleaf_eng_device_modules)],
+            "//build/bazel_mgk_rules:kernel_version_6.12"     : ["{}.{}.{}.eng".format(m, name, "6.12") for m in (real_kleaf_device_modules + real_kleaf_eng_device_modules)],
             "//build/bazel_mgk_rules:kernel_version_mainline": ["{}.{}.{}.eng".format(m, name, "mainline") for m in (real_kleaf_device_modules + real_kleaf_eng_device_modules)],
             "//conditions:default"                           : ["{}.eng".format(m) for m in (real_kleaf_device_modules + real_kleaf_eng_device_modules)],
         }),
@@ -475,8 +447,7 @@ def define_mgk(
         outs = real_device_modules + real_device_userdebug_modules,
         kernel_build = ":{}.userdebug".format(name),
         deps = select({
-            "//build/bazel_mgk_rules:kernel_version_6.1"     : ["{}.{}.{}.userdebug".format(m, name, "6.1") for m in (real_kleaf_device_modules + real_kleaf_userdebug_device_modules)],
-            "//build/bazel_mgk_rules:kernel_version_6.6"     : ["{}.{}.{}.userdebug".format(m, name, "6.6") for m in (real_kleaf_device_modules + real_kleaf_userdebug_device_modules)],
+            "//build/bazel_mgk_rules:kernel_version_6.12"     : ["{}.{}.{}.userdebug".format(m, name, "6.12") for m in (real_kleaf_device_modules + real_kleaf_userdebug_device_modules)],
             "//build/bazel_mgk_rules:kernel_version_mainline": ["{}.{}.{}.userdebug".format(m, name, "mainline") for m in (real_kleaf_device_modules + real_kleaf_userdebug_device_modules)],
             "//conditions:default"                           : ["{}.userdebug".format(m) for m in (real_kleaf_device_modules + real_kleaf_userdebug_device_modules)],
         }),
@@ -487,8 +458,7 @@ def define_mgk(
         outs = real_device_modules + real_device_user_modules,
         kernel_build = ":{}.user".format(name),
         deps = select({
-            "//build/bazel_mgk_rules:kernel_version_6.1"     : ["{}.{}.{}.user".format(m, name, "6.1") for m in (real_kleaf_device_modules + real_kleaf_user_device_modules)],
-            "//build/bazel_mgk_rules:kernel_version_6.6"     : ["{}.{}.{}.user".format(m, name, "6.6") for m in (real_kleaf_device_modules + real_kleaf_user_device_modules)],
+            "//build/bazel_mgk_rules:kernel_version_6.12"     : ["{}.{}.{}.user".format(m, name, "6.12") for m in (real_kleaf_device_modules + real_kleaf_user_device_modules)],
             "//build/bazel_mgk_rules:kernel_version_mainline": ["{}.{}.{}.user".format(m, name, "mainline") for m in (real_kleaf_device_modules + real_kleaf_user_device_modules)],
             "//conditions:default"                           : ["{}.user".format(m) for m in (real_kleaf_device_modules + real_kleaf_user_device_modules)],
         }),
@@ -499,8 +469,7 @@ def define_mgk(
         outs = real_device_modules + real_device_user_modules,
         kernel_build = ":{}.ack".format(name),
         deps = select({
-            "//build/bazel_mgk_rules:kernel_version_6.1"     : ["{}.{}.{}.ack".format(m, name, "6.1") for m in (kleaf_device_modules + kleaf_user_device_modules)],
-            "//build/bazel_mgk_rules:kernel_version_6.6"     : ["{}.{}.{}.ack".format(m, name, "6.6") for m in (kleaf_device_modules + kleaf_user_device_modules)],
+            "//build/bazel_mgk_rules:kernel_version_6.12"     : ["{}.{}.{}.ack".format(m, name, "6.12") for m in (kleaf_device_modules + kleaf_user_device_modules)],
             "//build/bazel_mgk_rules:kernel_version_mainline": ["{}.{}.{}.ack".format(m, name, "mainline") for m in (kleaf_device_modules + kleaf_user_device_modules)],
 	    "//conditions:default"                           : ["{}.ack".format(m) for m in (kleaf_device_modules + kleaf_user_device_modules)],
         }),
