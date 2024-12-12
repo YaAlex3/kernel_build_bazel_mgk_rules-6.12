@@ -102,6 +102,7 @@ def define_mgk(
         common_eng_modules,
         common_userdebug_modules,
         common_user_modules,
+        kleaf_device_modules_kconfigs,
         kleaf_device_modules,
         kleaf_platform_device_modules,
         kleaf_eng_device_modules,
@@ -225,8 +226,7 @@ def define_mgk(
                     "//conditions:default"                           : ["//{}:kernel_aarch64_sources".format(ack_dir)],
                 }) + [
                     ":mgk_configs",
-                    ":ddk_kconfigs",
-                ],
+                ] + kleaf_device_modules_kconfigs,
                 build_config = ":kernel_aarch64_{}_build_config.{}".format(name, build),
                 kconfig_ext = None if ack_build == "ack" else ":Kconfig.ext",
                 make_goals = [
@@ -260,8 +260,7 @@ def define_mgk(
                     "//conditions:default"                           : ["//{}:kernel_aarch64_sources".format(ack_dir)],
                 }) + [
                     ":{}_sources".format(name),
-                    ":ddk_kconfigs",
-                ],
+                ] + kleaf_device_modules_kconfigs,
                 outs = [
                     ".config",
                 ],
