@@ -26,20 +26,26 @@ kernel_versions_and_projects = {
    "mainline": "mgk_64_kmainline",
 }
 
-def get_real_modules_list(common_modules, platform_modules):
+def get_real_modules_list(common_modules, platform_modules, ddk=0):
     real_modules = []
     for k in common_modules:
-        file_path = paths.dirname(k) + "/*"
-        if native.glob([file_path]):
+        if ddk == 1:
             real_modules.append(k)
+        else:
+            file_path = paths.dirname(k) + "/*"
+            if native.glob([file_path]):
+                real_modules.append(k)
 
     mgk_platforms = [paths.dirname(p) for p in native.glob(["*/mgk.enabled"])]
     for k,v in platform_modules.items():
         for plat in v.split(" "):
             if (plat in mgk_platforms) and (k not in real_modules):
-                file_path = paths.dirname(k) + "/*"
-                if native.glob([file_path]):
+                if ddk == 1:
                     real_modules.append(k)
+                else:
+                    file_path = paths.dirname(k) + "/*"
+                    if native.glob([file_path]):
+                        real_modules.append(k)
     return real_modules
 
 def get_kleaf_modules_list(kleaf_modules):
@@ -84,6 +90,7 @@ def get_kleaf_modules_list(kleaf_modules):
             kleaf_internal.append(m)
     return kleaf_internal, kleaf_customer, kleaf_msync2_customer
 
+
 def define_mgk(
         name,
         defconfig,
@@ -95,6 +102,14 @@ def define_mgk(
         common_eng_modules,
         common_userdebug_modules,
         common_user_modules,
+        kleaf_device_modules,
+        kleaf_platform_device_modules,
+        kleaf_eng_device_modules,
+        kleaf_platform_eng_device_modules,
+        kleaf_userdebug_device_modules,
+        kleaf_platform_userdebug_device_modules,
+        kleaf_user_device_modules,
+        kleaf_platform_user_device_modules,
         device_modules,
         platform_device_modules,
         device_eng_modules,
@@ -136,6 +151,12 @@ def define_mgk(
     real_device_eng_modules = get_real_modules_list(device_eng_modules, platform_device_eng_modules)
     real_device_userdebug_modules = get_real_modules_list(device_userdebug_modules, platform_device_userdebug_modules)
     real_device_user_modules = get_real_modules_list(device_user_modules, platform_device_user_modules)
+
+    # deal with DDK device modules list
+    real_kleaf_device_modules = get_real_modules_list(kleaf_device_modules, kleaf_platform_device_modules, ddk=1)
+    real_kleaf_eng_device_modules = get_real_modules_list(kleaf_eng_device_modules, kleaf_platform_eng_device_modules, ddk=1)
+    real_kleaf_userdebug_device_modules = get_real_modules_list(kleaf_userdebug_device_modules, kleaf_platform_userdebug_device_modules, ddk=1)
+    real_kleaf_user_device_modules = get_real_modules_list(kleaf_user_device_modules, kleaf_platform_user_device_modules, ddk=1)
 
     for build in ["eng", "userdebug", "user", "ack"]:
         ack_build = build
@@ -204,6 +225,7 @@ def define_mgk(
                     "//conditions:default"                           : ["//{}:kernel_aarch64_sources".format(ack_dir)],
                 }) + [
                     ":mgk_configs",
+                    ":ddk_kconfigs",
                 ],
                 build_config = ":kernel_aarch64_{}_build_config.{}".format(name, build),
                 kconfig_ext = None if ack_build == "ack" else ":Kconfig.ext",
@@ -214,6 +236,12 @@ def define_mgk(
                     "Image.gz",
                     "modules",
                 ],
+                ddk_module_headers = select({
+                    "//build/bazel_mgk_rules:kernel_version_6.1"     : ["//{}-{}:all_headers_aarch64".format(ack_dir, "6.1")],
+                    "//build/bazel_mgk_rules:kernel_version_6.6"     : ["//{}-{}:all_headers_aarch64".format(ack_dir, "6.6")],
+                    "//build/bazel_mgk_rules:kernel_version_mainline": ["//{}-{}:all_headers_aarch64".format(ack_dir, "mainline")],
+                    "//conditions:default"                           : ["//{}:all_headers_aarch64".format(ack_dir)],
+                }),
                 strip_modules=True,
                 outs = DEFAULT_GKI_OUTS,
                 module_outs = common_eng_modules if ack_build == "eng" else common_userdebug_modules if ack_build == "userdebug" else common_user_modules if ack_build == "user" else [],
@@ -232,6 +260,7 @@ def define_mgk(
                     "//conditions:default"                           : ["//{}:kernel_aarch64_sources".format(ack_dir)],
                 }) + [
                     ":{}_sources".format(name),
+                    ":ddk_kconfigs",
                 ],
                 outs = [
                     ".config",
@@ -243,6 +272,12 @@ def define_mgk(
                 make_goals = [
                     "modules",
                 ],
+                ddk_module_headers = select({
+                    "//build/bazel_mgk_rules:kernel_version_6.1"     : ["//{}-{}:all_headers_aarch64".format(ack_dir, "6.1")],
+                    "//build/bazel_mgk_rules:kernel_version_6.6"     : ["//{}-{}:all_headers_aarch64".format(ack_dir, "6.6")],
+                    "//build/bazel_mgk_rules:kernel_version_mainline": ["//{}-{}:all_headers_aarch64".format(ack_dir, "mainline")],
+                    "//conditions:default"                           : ["//{}:all_headers_aarch64".format(ack_dir)],
+                }),
                 strip_modules = False,
                 base_kernel = select({
                     "//build/bazel_mgk_rules:kernel_version_6.1"     : "//{}-{}:kernel_aarch64_debug".format(ack_dir, "6.1"),
@@ -300,27 +335,27 @@ def define_mgk(
             kernel_modules = [
                 ":{}_modules.{}".format(name, build),
             ] + select({
-                "//build/bazel_mgk_rules:kernel_version_6.1"     : ["{}.{}.{}.{}".format(m, name, "6.1", build) for m in kleaf_internal],
-                "//build/bazel_mgk_rules:kernel_version_6.6"     : ["{}.{}.{}.{}".format(m, name, "6.6", build) for m in kleaf_internal],
-                "//build/bazel_mgk_rules:kernel_version_mainline": ["{}.{}.{}.{}".format(m, name, "mainline", build) for m in kleaf_internal],
-                "//conditions:default"                           : ["{}.{}".format(m, build) for m in kleaf_internal],
+                "//build/bazel_mgk_rules:kernel_version_6.1"     : ["{}.{}.{}.{}".format(m, name, "6.1", build) for m in (kleaf_internal + real_kleaf_device_modules)],
+                "//build/bazel_mgk_rules:kernel_version_6.6"     : ["{}.{}.{}.{}".format(m, name, "6.6", build) for m in (kleaf_internal + real_kleaf_device_modules)],
+                "//build/bazel_mgk_rules:kernel_version_mainline": ["{}.{}.{}.{}".format(m, name, "mainline", build) for m in (kleaf_internal + real_kleaf_device_modules)],
+                "//conditions:default"                           : ["{}.{}".format(m, build) for m in (kleaf_internal + real_kleaf_device_modules)],
             }) + (select({
-                "//build/bazel_mgk_rules:kernel_version_6.1"     : ["{}.{}.{}.{}".format(m, name, "6.1", build) for m in kleaf_eng_internal],
-                "//build/bazel_mgk_rules:kernel_version_6.6"     : ["{}.{}.{}.{}".format(m, name, "6.6", build) for m in kleaf_eng_internal],
-                "//build/bazel_mgk_rules:kernel_version_mainline": ["{}.{}.{}.{}".format(m, name, "mainline", build) for m in kleaf_eng_internal],
-                "//conditions:default"                           : ["{}.{}".format(m, build) for m in kleaf_eng_internal],
+                "//build/bazel_mgk_rules:kernel_version_6.1"     : ["{}.{}.{}.{}".format(m, name, "6.1", build) for m in (kleaf_eng_internal + real_kleaf_eng_device_modules)],
+                "//build/bazel_mgk_rules:kernel_version_6.6"     : ["{}.{}.{}.{}".format(m, name, "6.6", build) for m in (kleaf_eng_internal + real_kleaf_eng_device_modules)],
+                "//build/bazel_mgk_rules:kernel_version_mainline": ["{}.{}.{}.{}".format(m, name, "mainline", build) for m in (kleaf_eng_internal + real_kleaf_eng_device_modules)],
+                "//conditions:default"                           : ["{}.{}".format(m, build) for m in (kleaf_eng_internal + real_kleaf_eng_device_modules)],
             }) if build == "eng" else [])
               + (select({
-                "//build/bazel_mgk_rules:kernel_version_6.1"     : ["{}.{}.{}.{}".format(m, name, "6.1", build) for m in kleaf_userdebug_internal],
-                "//build/bazel_mgk_rules:kernel_version_6.6"     : ["{}.{}.{}.{}".format(m, name, "6.6", build) for m in kleaf_userdebug_internal],
-                "//build/bazel_mgk_rules:kernel_version_mainline": ["{}.{}.{}.{}".format(m, name, "mainline", build) for m in kleaf_userdebug_internal],
-                "//conditions:default"                           : ["{}.{}".format(m, build) for m in kleaf_userdebug_internal],
+                "//build/bazel_mgk_rules:kernel_version_6.1"     : ["{}.{}.{}.{}".format(m, name, "6.1", build) for m in (kleaf_userdebug_internal + real_kleaf_userdebug_device_modules)],
+                "//build/bazel_mgk_rules:kernel_version_6.6"     : ["{}.{}.{}.{}".format(m, name, "6.6", build) for m in (kleaf_userdebug_internal + real_kleaf_userdebug_device_modules)],
+                "//build/bazel_mgk_rules:kernel_version_mainline": ["{}.{}.{}.{}".format(m, name, "mainline", build) for m in (kleaf_userdebug_internal + real_kleaf_userdebug_device_modules)],
+                "//conditions:default"                           : ["{}.{}".format(m, build) for m in (kleaf_userdebug_internal + real_kleaf_userdebug_device_modules)],
             }) if build == "userdebug" else [])
               + (select({
-                "//build/bazel_mgk_rules:kernel_version_6.1"     : ["{}.{}.{}.{}".format(m, name, "6.1", build) for m in kleaf_user_internal],
-                "//build/bazel_mgk_rules:kernel_version_6.6"     : ["{}.{}.{}.{}".format(m, name, "6.6", build) for m in kleaf_user_internal],
-                "//build/bazel_mgk_rules:kernel_version_mainline": ["{}.{}.{}.{}".format(m, name, "mainline", build) for m in kleaf_user_internal],
-                "//conditions:default"                           : ["{}.{}".format(m, build) for m in kleaf_user_internal],
+                "//build/bazel_mgk_rules:kernel_version_6.1"     : ["{}.{}.{}.{}".format(m, name, "6.1", build) for m in (kleaf_user_internal + real_kleaf_user_device_modules)],
+                "//build/bazel_mgk_rules:kernel_version_6.6"     : ["{}.{}.{}.{}".format(m, name, "6.6", build) for m in (kleaf_user_internal + real_kleaf_user_device_modules)],
+                "//build/bazel_mgk_rules:kernel_version_mainline": ["{}.{}.{}.{}".format(m, name, "mainline", build) for m in (kleaf_user_internal + real_kleaf_user_device_modules)],
+                "//conditions:default"                           : ["{}.{}".format(m, build) for m in (kleaf_user_internal + real_kleaf_user_device_modules)],
             }) if build == "user" else []),
             kernel_build = ":{}.{}".format(name, build),
         )
@@ -364,27 +399,27 @@ def define_mgk(
             kernel_modules = [
                 ":{}_modules.{}".format(name, build),
             ] + select({
-                "//build/bazel_mgk_rules:kernel_version_6.1"     : ["{}.{}.{}.{}".format(m, name, "6.1", build) for m in kleaf_customer],
-                "//build/bazel_mgk_rules:kernel_version_6.6"     : ["{}.{}.{}.{}".format(m, name, "6.6", build) for m in kleaf_customer],
-                "//build/bazel_mgk_rules:kernel_version_mainline": ["{}.{}.{}.{}".format(m, name, "mainline", build) for m in kleaf_customer],
-                "//conditions:default"                           : ["{}.{}".format(m, build) for m in kleaf_customer],
+                "//build/bazel_mgk_rules:kernel_version_6.1"     : ["{}.{}.{}.{}".format(m, name, "6.1", build) for m in (kleaf_customer + real_kleaf_device_modules)],
+                "//build/bazel_mgk_rules:kernel_version_6.6"     : ["{}.{}.{}.{}".format(m, name, "6.6", build) for m in (kleaf_customer + real_kleaf_device_modules)],
+                "//build/bazel_mgk_rules:kernel_version_mainline": ["{}.{}.{}.{}".format(m, name, "mainline", build) for m in (kleaf_customer + real_kleaf_device_modules)],
+                "//conditions:default"                           : ["{}.{}".format(m, build) for m in (kleaf_customer + real_kleaf_device_modules)],
             }) + (select({
-                "//build/bazel_mgk_rules:kernel_version_6.1"     : ["{}.{}.{}.{}".format(m, name, "6.1", build) for m in kleaf_eng_customer],
-                "//build/bazel_mgk_rules:kernel_version_6.6"     : ["{}.{}.{}.{}".format(m, name, "6.6", build) for m in kleaf_eng_customer],
-                "//build/bazel_mgk_rules:kernel_version_mainline": ["{}.{}.{}.{}".format(m, name, "mainline", build) for m in kleaf_eng_customer],
-                "//conditions:default"                           : ["{}.{}".format(m, build) for m in kleaf_eng_customer],
+                "//build/bazel_mgk_rules:kernel_version_6.1"     : ["{}.{}.{}.{}".format(m, name, "6.1", build) for m in (kleaf_eng_customer + real_kleaf_eng_device_modules)],
+                "//build/bazel_mgk_rules:kernel_version_6.6"     : ["{}.{}.{}.{}".format(m, name, "6.6", build) for m in (kleaf_eng_customer + real_kleaf_eng_device_modules)],
+                "//build/bazel_mgk_rules:kernel_version_mainline": ["{}.{}.{}.{}".format(m, name, "mainline", build) for m in (kleaf_eng_customer + real_kleaf_eng_device_modules)],
+                "//conditions:default"                           : ["{}.{}".format(m, build) for m in (kleaf_eng_customer + real_kleaf_eng_device_modules)],
             }) if build == "eng" else [])
               + (select({
-                "//build/bazel_mgk_rules:kernel_version_6.1"     : ["{}.{}.{}.{}".format(m, name, "6.1", build) for m in kleaf_userdebug_customer],
-                "//build/bazel_mgk_rules:kernel_version_6.6"     : ["{}.{}.{}.{}".format(m, name, "6.6", build) for m in kleaf_userdebug_customer],
-                "//build/bazel_mgk_rules:kernel_version_mainline": ["{}.{}.{}.{}".format(m, name, "mainline", build) for m in kleaf_userdebug_customer],
-                "//conditions:default"                           : ["{}.{}".format(m, build) for m in kleaf_userdebug_customer],
+                "//build/bazel_mgk_rules:kernel_version_6.1"     : ["{}.{}.{}.{}".format(m, name, "6.1", build) for m in (kleaf_userdebug_customer + real_kleaf_userdebug_device_modules)],
+                "//build/bazel_mgk_rules:kernel_version_6.6"     : ["{}.{}.{}.{}".format(m, name, "6.6", build) for m in (kleaf_userdebug_customer + real_kleaf_userdebug_device_modules)],
+                "//build/bazel_mgk_rules:kernel_version_mainline": ["{}.{}.{}.{}".format(m, name, "mainline", build) for m in (kleaf_userdebug_customer + real_kleaf_userdebug_device_modules)],
+                "//conditions:default"                           : ["{}.{}".format(m, build) for m in (kleaf_userdebug_customer + real_kleaf_userdebug_device_modules)],
             }) if build == "userdebug" else [])
               + (select({
-                "//build/bazel_mgk_rules:kernel_version_6.1"     : ["{}.{}.{}.{}".format(m, name, "6.1", build) for m in kleaf_user_customer],
-                "//build/bazel_mgk_rules:kernel_version_6.6"     : ["{}.{}.{}.{}".format(m, name, "6.6", build) for m in kleaf_user_customer],
-                "//build/bazel_mgk_rules:kernel_version_mainline": ["{}.{}.{}.{}".format(m, name, "mainline", build) for m in kleaf_user_customer],
-                "//conditions:default"                           : ["{}.{}".format(m, build) for m in kleaf_user_customer],
+                "//build/bazel_mgk_rules:kernel_version_6.1"     : ["{}.{}.{}.{}".format(m, name, "6.1", build) for m in (kleaf_user_customer + real_kleaf_user_device_modules)],
+                "//build/bazel_mgk_rules:kernel_version_6.6"     : ["{}.{}.{}.{}".format(m, name, "6.6", build) for m in (kleaf_user_customer + real_kleaf_user_device_modules)],
+                "//build/bazel_mgk_rules:kernel_version_mainline": ["{}.{}.{}.{}".format(m, name, "mainline", build) for m in (kleaf_user_customer + real_kleaf_user_device_modules)],
+                "//conditions:default"                           : ["{}.{}".format(m, build) for m in (kleaf_user_customer + real_kleaf_user_device_modules)],
             }) if build == "user" else [])
               + (select({
                 "@mgk_ko//:msync2_lic_6.1_set": ["//vendor/mediatek/kernel_modules/msync2_frd_cus/build:msync2_frd_cus.{}.{}.{}".format(name, "6.1", build)],
@@ -434,24 +469,48 @@ def define_mgk(
         srcs = [":{}_sources".format(name)],
         outs = real_device_modules + real_device_eng_modules,
         kernel_build = ":{}.eng".format(name),
+        deps = select({
+            "//build/bazel_mgk_rules:kernel_version_6.1"     : ["{}.{}.{}.eng".format(m, name, "6.1") for m in (real_kleaf_device_modules + real_kleaf_eng_device_modules)],
+            "//build/bazel_mgk_rules:kernel_version_6.6"     : ["{}.{}.{}.eng".format(m, name, "6.6") for m in (real_kleaf_device_modules + real_kleaf_eng_device_modules)],
+            "//build/bazel_mgk_rules:kernel_version_mainline": ["{}.{}.{}.eng".format(m, name, "mainline") for m in (real_kleaf_device_modules + real_kleaf_eng_device_modules)],
+            "//conditions:default"                           : ["{}.eng".format(m) for m in (real_kleaf_device_modules + real_kleaf_eng_device_modules)],
+        }),
     )
     kernel_module(
         name = "{}_modules.userdebug".format(name),
         srcs = [":{}_sources".format(name)],
         outs = real_device_modules + real_device_userdebug_modules,
         kernel_build = ":{}.userdebug".format(name),
+        deps = select({
+            "//build/bazel_mgk_rules:kernel_version_6.1"     : ["{}.{}.{}.userdebug".format(m, name, "6.1") for m in (real_kleaf_device_modules + real_kleaf_userdebug_device_modules)],
+            "//build/bazel_mgk_rules:kernel_version_6.6"     : ["{}.{}.{}.userdebug".format(m, name, "6.6") for m in (real_kleaf_device_modules + real_kleaf_userdebug_device_modules)],
+            "//build/bazel_mgk_rules:kernel_version_mainline": ["{}.{}.{}.userdebug".format(m, name, "mainline") for m in (real_kleaf_device_modules + real_kleaf_userdebug_device_modules)],
+            "//conditions:default"                           : ["{}.userdebug".format(m) for m in (real_kleaf_device_modules + real_kleaf_userdebug_device_modules)],
+        }),
     )
     kernel_module(
         name = "{}_modules.user".format(name),
         srcs = [":{}_sources".format(name)],
         outs = real_device_modules + real_device_user_modules,
         kernel_build = ":{}.user".format(name),
+        deps = select({
+            "//build/bazel_mgk_rules:kernel_version_6.1"     : ["{}.{}.{}.user".format(m, name, "6.1") for m in (real_kleaf_device_modules + real_kleaf_user_device_modules)],
+            "//build/bazel_mgk_rules:kernel_version_6.6"     : ["{}.{}.{}.user".format(m, name, "6.6") for m in (real_kleaf_device_modules + real_kleaf_user_device_modules)],
+            "//build/bazel_mgk_rules:kernel_version_mainline": ["{}.{}.{}.user".format(m, name, "mainline") for m in (real_kleaf_device_modules + real_kleaf_user_device_modules)],
+            "//conditions:default"                           : ["{}.user".format(m) for m in (real_kleaf_device_modules + real_kleaf_user_device_modules)],
+        }),
     )
     kernel_module(
         name = "{}_modules.ack".format(name),
         srcs = [":{}_sources".format(name)],
         outs = real_device_modules + real_device_user_modules,
         kernel_build = ":{}.ack".format(name),
+        deps = select({
+            "//build/bazel_mgk_rules:kernel_version_6.1"     : ["{}.{}.{}.ack".format(m, name, "6.1") for m in (kleaf_device_modules + kleaf_user_device_modules)],
+            "//build/bazel_mgk_rules:kernel_version_6.6"     : ["{}.{}.{}.ack".format(m, name, "6.6") for m in (kleaf_device_modules + kleaf_user_device_modules)],
+            "//build/bazel_mgk_rules:kernel_version_mainline": ["{}.{}.{}.ack".format(m, name, "mainline") for m in (kleaf_device_modules + kleaf_user_device_modules)],
+	    "//conditions:default"                           : ["{}.ack".format(m) for m in (kleaf_device_modules + kleaf_user_device_modules)],
+        }),
     )
 
 
