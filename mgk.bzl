@@ -53,7 +53,8 @@ def get_kleaf_modules_list(kleaf_modules):
     kleaf_customer = []
     kleaf_msync2_customer = 0
     for m in kleaf_modules:
-        p = m.partition(":")[2]
+        p = m.partition(":")[2]     # it is the ko name in ddk
+        path = m.partition(":")[0]
         is_cus = 0
         if p in kleaf_switch:
             is_cus = -1
@@ -67,7 +68,7 @@ def get_kleaf_modules_list(kleaf_modules):
                 is_cus = 1
             elif p.endswith("_int"):
                 k = p[:-4]
-                if k in kleaf_switch:
+                if k in kleaf_switch or path.endswith("_int"): ## ko name is ends with _cus & _int or path.endswith("_int")
                     is_cus = -1
             elif p.startswith("met_drv_secure"):
                 is_cus = -1
