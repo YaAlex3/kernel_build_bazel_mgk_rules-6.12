@@ -226,6 +226,7 @@ def define_mgk(
                 build_config = ":kernel_aarch64_{}_build_config.{}".format(name, build),
                 kconfig_ext = None if ack_build == "ack" else ":Kconfig.ext",
                 make_goals = [
+                    "PAHOLE_FLAGS=--btf_gen_floats",
                     "Image",
                     "Image.lz4",
                     "Image.gz",
@@ -490,6 +491,8 @@ def _mgk_build_config_impl(ctx):
     content.append("KERNEL_DIR={}".format(ctx.attr.kernel_dir))
     if ctx.attr.config_is_local[BuildSettingInfo].value:
         content.append("DEVICE_MODULES_REL_DIR=../kernel/${DEVICE_MODULES_DIR}")
+        content.append("DEVICE_SYMVERS_FILES_REBUILD_REL_DIR=../${DEVICE_MODULES_DIR}")
+        content.append("COVERITY_BUILD=True")
     else:
         content.append("DEVICE_MODULES_REL_DIR=$(realpath ${DEVICE_MODULES_DIR} --relative-to ${KERNEL_DIR})")
     content.append("""
