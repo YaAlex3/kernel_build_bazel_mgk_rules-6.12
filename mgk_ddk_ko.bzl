@@ -13,6 +13,7 @@ def define_mgk_ddk_ko(
         module_type = None,
         srcs = None,
         header_deps = [],
+        prebuilt_srcs = [],
         ko_deps = [],
         hdrs = None,
         includes = None,
@@ -20,7 +21,8 @@ def define_mgk_ddk_ko(
         linux_includes = None,
         out = None,
         local_defines = None,
-        copts = None):
+        copts = None,
+        kconfig = None,):
     if srcs == None:
         srcs = native.glob(
             [
@@ -63,7 +65,8 @@ def define_mgk_ddk_ko(
                                 "//{}:headers".format(device_modules_dir),
                             ] + (["//{}:{}_modules.{}".format(device_modules_dir, project, build)] if native.package_name().startswith("vendor") else [])
                             + ["{}.{}.{}.{}".format(m, project, version, build) for m in ko_deps]
-                            + header_deps,
+                            + header_deps
+                            + prebuilt_srcs,
                             hdrs = hdrs,
                             includes = includes,
                             conditional_srcs = conditional_srcs,
@@ -71,6 +74,7 @@ def define_mgk_ddk_ko(
                             out = out,
                             local_defines = local_defines,
                             copts = real_copts,
+                            kconfig = kconfig,
                     )
                     else:
                         ddk_module(
@@ -78,6 +82,7 @@ def define_mgk_ddk_ko(
                             kernel_build = "//{}:{}.{}".format(device_modules_dir, project, build),
                             deps = ["{}.{}.{}.{}".format(m, project, version, build) for m in ko_deps],
                             linux_includes = linux_includes,
+                            kconfig = kconfig,
                         )
                 else:
                     ddk_submodule(
@@ -87,7 +92,8 @@ def define_mgk_ddk_ko(
                             "//{}:headers".format(device_modules_dir),
                         ] + (["//{}:{}_modules.{}".format(device_modules_dir, project, build)] if native.package_name().startswith("vendor") else [])
                         + ["{}.{}.{}.{}".format(m, project, version, build) for m in ko_deps]
-                        + header_deps,
+                        + header_deps
+                        + prebuilt_srcs,
                         hdrs = hdrs,
                         includes = includes,
                         conditional_srcs = conditional_srcs,
