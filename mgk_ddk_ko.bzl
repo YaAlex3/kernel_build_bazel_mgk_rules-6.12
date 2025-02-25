@@ -22,7 +22,8 @@ def define_mgk_ddk_ko(
         out = None,
         local_defines = None,
         copts = None,
-        kconfig = None,):
+        kconfig = None,
+        defconfig = None,):
     if srcs == None:
         srcs = native.glob(
             [
@@ -75,6 +76,7 @@ def define_mgk_ddk_ko(
                             local_defines = local_defines,
                             copts = real_copts,
                             kconfig = kconfig,
+                            defconfig = defconfig,
                     )
                     else:
                         ddk_module(
@@ -83,6 +85,7 @@ def define_mgk_ddk_ko(
                             deps = ["{}.{}.{}.{}".format(m, project, version, build) for m in ko_deps],
                             linux_includes = linux_includes,
                             kconfig = kconfig,
+                            defconfig = defconfig,
                         )
                 else:
                     ddk_submodule(
