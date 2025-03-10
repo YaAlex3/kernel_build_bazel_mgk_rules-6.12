@@ -228,6 +228,7 @@ def define_mgk(
                 build_config = ":kernel_aarch64_{}_build_config.{}".format(name, build),
                 kconfig_ext = None if ack_build == "ack" else ":Kconfig.ext",
                 make_goals = [
+                    "PAHOLE_FLAGS=--btf_gen_floats",
                     "Image",
                     "Image.lz4",
                     "Image.gz",
