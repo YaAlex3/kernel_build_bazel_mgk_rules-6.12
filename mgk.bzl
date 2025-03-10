@@ -18,6 +18,7 @@ load(
 )
 load("@mgk_info//:dict.bzl",
     "DEFCONFIG_OVERLAYS",
+    "SUPPORT_PLATFORM",
 )
 
 kernel_versions_and_projects = {
@@ -25,14 +26,15 @@ kernel_versions_and_projects = {
    "mainline": "mgk_64_kmainline",
 }
 
-def get_real_modules_list(common_modules, platform_modules):
+def get_real_modules_list(common_modules, platform_modules, is_ddk=True):
     real_modules = []
     out_of_tree_platforms_modules = []
     for k in common_modules:
         real_modules.append(k)
-
-
-    mgk_platforms = [paths.dirname(p) for p in native.glob(["*/mgk.enabled"])]
+    if is_ddk != False and SUPPORT_PLATFORM != "":
+        mgk_platforms = SUPPORT_PLATFORM.split(" ")
+    else:
+        mgk_platforms = [paths.dirname(p) for p in native.glob(["*/mgk.enabled"])]
     for k,v in platform_modules.items():
         for plat in v.split(" "):
             if (plat in mgk_platforms) and (k not in real_modules):
@@ -140,9 +142,9 @@ def define_mgk(
 
 
     # deal with device modules list
-    real_device_modules,_ = get_real_modules_list(device_modules, platform_device_modules)
-    real_device_eng_modules,_ = get_real_modules_list(device_eng_modules, platform_device_eng_modules)
-    real_device_userdebug_modules,_ = get_real_modules_list(device_userdebug_modules, platform_device_userdebug_modules)
+    real_device_modules,_ = get_real_modules_list(device_modules, platform_device_modules,is_ddk=False)
+    real_device_eng_modules,_ = get_real_modules_list(device_eng_modules, platform_device_eng_modules,is_ddk=False)
+    real_device_userdebug_modules,_ = get_real_modules_list(device_userdebug_modules, platform_device_userdebug_modules,is_ddk=False)
     real_device_user_modules,_ = get_real_modules_list(device_user_modules, platform_device_user_modules)
 
     # deal with DDK device modules list
@@ -226,6 +228,7 @@ def define_mgk(
                 build_config = ":kernel_aarch64_{}_build_config.{}".format(name, build),
                 kconfig_ext = None if ack_build == "ack" else ":Kconfig.ext",
                 make_goals = [
+                    "PAHOLE_FLAGS=--btf_gen_floats",
                     "Image",
                     "Image.lz4",
                     "Image.gz",
