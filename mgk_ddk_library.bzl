@@ -11,6 +11,9 @@ def define_mgk_ddk_library(
     copts = [],
     header_deps = [],
     ko_deps = [],
+    includes = None,
+    local_defines = None,
+    linux_includes = None,
 ):
     for version,projects in kernel_versions_and_projects.items():
         for project in projects.split(" "):
@@ -39,5 +42,9 @@ def define_mgk_ddk_library(
                     pkvm_el2 = pkvm_el2,
                     copts = real_copts,
                     deps = ["//{}:headers".format(device_modules_dir),]
+                            + ["{}.{}.{}.{}".format(m, project, version, build) for m in ko_deps]
                             + header_deps,
+                    includes = includes,
+                    local_defines = local_defines,
+                    linux_includes = linux_includes,
                 )
