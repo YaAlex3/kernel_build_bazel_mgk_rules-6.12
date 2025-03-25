@@ -59,7 +59,7 @@ def define_mgk_ko(
                     outs = outs,
                     kernel_build = "//{}:{}.{}".format(device_modules_dir, project, build),
                     deps = ([
-                        "//{}:{}_modules.{}".format(device_modules_dir, project, build),
+                        #"//{}:{}_modules.{}".format(device_modules_dir, project, build),
                     ] if build != "no_device_ko" else [])
                     + ["{}.{}.{}.{}".format(m, project, version, build) for m in deps]
                     + ["{}.{}.{}.{}".format(m, project, version, build) for m in kleaf_device_modules],
