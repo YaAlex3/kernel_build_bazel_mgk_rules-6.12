@@ -323,7 +323,6 @@ def define_mgk(
         kernel_modules_install(
             name = "{}_internal_modules_install.{}".format(name, build),
             kernel_modules = [
-                ":{}_modules.{}".format(name, build),
             ] + select({
                 "//build/bazel_mgk_rules:kernel_version_6.12"     : ["{}.{}.{}.{}".format(m, name, "6.12", build) for m in (kleaf_internal + real_kleaf_device_modules)],
                 "//build/bazel_mgk_rules:kernel_version_mainline": ["{}.{}.{}.{}".format(m, name, "mainline", build) for m in (kleaf_internal + real_kleaf_device_modules)],
@@ -380,7 +379,6 @@ def define_mgk(
         kernel_modules_install(
             name = "{}_customer_modules_install.{}".format(name, build),
             kernel_modules = [
-                ":{}_modules.{}".format(name, build),
             ] + select({
                 "//build/bazel_mgk_rules:kernel_version_6.12"     : ["{}.{}.{}.{}".format(m, name, "6.12", build) for m in (kleaf_customer + real_kleaf_device_modules)],
                 "//build/bazel_mgk_rules:kernel_version_mainline": ["{}.{}.{}.{}".format(m, name, "mainline", build) for m in (kleaf_customer + real_kleaf_device_modules)],
