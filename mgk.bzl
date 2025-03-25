@@ -37,7 +37,7 @@ def get_real_modules_list(common_modules, platform_modules, is_ddk=True):
         mgk_platforms = [paths.dirname(p) for p in native.glob(["*/mgk.enabled"])]
     for k,v in platform_modules.items():
         for plat in v.split(" "):
-            if (plat in mgk_platforms) and (k not in real_modules):
+            if (plat in mgk_platforms) and (k not in real_modules) and (k not in out_of_tree_platforms_modules):
                 if k.startswith("//vendor"):
                     out_of_tree_platforms_modules.append(k)
                 else:
@@ -289,7 +289,7 @@ def define_mgk(
         kernel_abi(
             name = "{}.{}_internal_abi".format(name, build),
             kernel_modules = [
-                ":{}_modules.{}".format(name, build),
+                #":{}_modules.{}".format(name, build),
             ] + select({
                 "//build/bazel_mgk_rules:kernel_version_6.12"     : ["{}.{}.{}.{}".format(m, name, "6.12", build) for m in kleaf_internal],
                 "//build/bazel_mgk_rules:kernel_version_mainline": ["{}.{}.{}.{}".format(m, name, "mainline", build) for m in kleaf_internal],
@@ -306,7 +306,7 @@ def define_mgk(
         kernel_abi(
             name = "{}.{}_customer_abi".format(name, build),
             kernel_modules = [
-                ":{}_modules.{}".format(name, build),
+                #":{}_modules.{}".format(name, build),
             ] + select({
                 "//build/bazel_mgk_rules:kernel_version_6.12"     : ["{}.{}.{}.{}".format(m, name, "6.12", build) for m in kleaf_customer],
                 "//build/bazel_mgk_rules:kernel_version_mainline": ["{}.{}.{}.{}".format(m, name, "mainline", build) for m in kleaf_customer],
