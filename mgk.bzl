@@ -20,11 +20,19 @@ load("@mgk_info//:dict.bzl",
     "DEFCONFIG_OVERLAYS",
     "SUPPORT_PLATFORM",
 )
+load("@mgk_info//:kernel_version.bzl",
+     "kernel_version",
+)
 load("//build/kernel/kleaf:kernel.bzl", "kernel_compile_commands")
 kernel_versions_and_projects = {
    "6.12": "mgk_64_k612",
    "mainline": "mgk_64_kmainline",
 }
+# Extra generated headers below $OUT_DIR for external modules.
+_GENERATED_HEADERS_FOR_MODULE = [
+    "security/selinux/flask.h",
+    "security/selinux/av_permissions.h",
+]
 
 def get_real_modules_list(common_modules, platform_modules, is_ddk=True):
     real_modules = []
@@ -244,6 +252,7 @@ def define_mgk(
                 module_implicit_outs = common_modules if ack_build == "ack" else [],
                 base_kernel = None,
                 trim_nonlisted_kmi = False,
+                generated_headers_for_module = _GENERATED_HEADERS_FOR_MODULE,
             )
             kernel_compile_commands(
                 name = "compile_commands_{}_kernel_aarch64.{}".format(name, build),
@@ -282,7 +291,8 @@ def define_mgk(
                     "//conditions:default"                           : None,
                 }) if build == "ack" else ":{}_kernel_aarch64.{}".format(name, build),
                 module_signing_key = "certs/mtk_signing_key.pem",
-                modules_prepare_force_generate_headers = True,
+                modules_prepare_force_generate_headers = True if kernel_version == "6.12" else False,
+                generated_headers_for_module = _GENERATED_HEADERS_FOR_MODULE if kernel_version == "mainline" else [],
                 # ABI
                 kmi_symbol_list = symbol_list,
                 trim_nonlisted_kmi = False,

@@ -50,6 +50,9 @@ def define_mgk_ddk_ko(
                     for opt in copts:
                         if "$(srctree)" in opt:
                             real_copts.append(opt.replace("$(srctree)","$(ROOT_DIR)/{}".format(ack_dir)))
+                        elif "$(objtree)" in opt:
+                            opt = opt.replace("$(objtree)", "$(ROOT_DIR)/out/android-{}/{}".format(version,ack_dir))
+                            real_copts.append(opt)
                         else:
                             if "$(DEVICE_MODULES_PATH)" in opt:
                                 real_copts.append(opt.replace("$(DEVICE_MODULES_PATH)","$(ROOT_DIR)/{}".format(device_modules_dir)))
