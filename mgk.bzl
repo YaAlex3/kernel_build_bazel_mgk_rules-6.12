@@ -126,7 +126,8 @@ def define_mgk(
         platform_device_user_modules,
         symbol_list,
         additional_symbol_lists,
-        KMI_white_list):
+        KMI_white_list,
+        dtb_files = None):
     mgk_defconfig_overlays = []
     for o in DEFCONFIG_OVERLAYS.split(" "):
         if o != "":
@@ -275,14 +276,14 @@ def define_mgk(
                 ] + kleaf_device_modules_kconfigs,
                 outs = [
                     ".config",
-                ],
+                ] + (dtb_files or []),
                 module_outs = common_eng_modules if build == "eng" else common_userdebug_modules if build == "userdebug" else [],
                 module_implicit_outs = common_user_modules if build == "user" else [],
                 build_config = ":{}_build_config.{}".format(name, build),
                 kconfig_ext = ":Kconfig.ext",
                 make_goals = [
                     "modules",
-                ],
+                ] + (["dtbs"] if dtb_files else []),
                 ddk_module_headers = select({
                     "//build/bazel_mgk_rules:kernel_version_6.12"     : ["//{}-{}:all_headers_aarch64".format(ack_dir, "6.12")],
                     "//build/bazel_mgk_rules:kernel_version_mainline": ["//{}-{}:all_headers_aarch64".format(ack_dir, "mainline")],
@@ -296,6 +297,7 @@ def define_mgk(
                 }) if build == "ack" else ":{}_kernel_aarch64.{}".format(name, build),
                 module_signing_key = "certs/mtk_signing_key.pem",
                 modules_prepare_force_generate_headers = True if kernel_version == "6.12" else False,
+                dtstree = "//kernel_device_modules-6.12/arch/arm64/boot/dts:mtk_dt" if dtb_files else None,
                 generated_headers_for_module = _GENERATED_HEADERS_FOR_MODULE if kernel_version == "mainline" else [],
                 # ABI
                 kmi_symbol_list = symbol_list,
