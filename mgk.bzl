@@ -253,10 +253,10 @@ def define_mgk(
                 module_outs = common_eng_modules if ack_build == "eng" else common_userdebug_modules if ack_build == "userdebug" else common_user_modules if ack_build == "user" else [],
                 module_implicit_outs = common_modules if ack_build == "ack" else [],
                 base_kernel = None,
-                trim_nonlisted_kmi = True if ack_build == "ack" else False,
+                trim_nonlisted_kmi = True if ack_build == "ack" and symbol_list != None else False,
                 kmi_symbol_list = symbol_list,
                 additional_kmi_symbol_lists = additional_symbol_lists,
-                kmi_symbol_list_strict_mode = True if ack_build == "ack" else False,
+                kmi_symbol_list_strict_mode = True if ack_build == "ack" and symbol_list != None else False,
                 generated_headers_for_module = _GENERATED_HEADERS_FOR_MODULE,
             )
             kernel_compile_commands(
@@ -300,7 +300,7 @@ def define_mgk(
                 generated_headers_for_module = _GENERATED_HEADERS_FOR_MODULE if kernel_version == "mainline" else [],
                 # ABI
                 kmi_symbol_list = symbol_list,
-                trim_nonlisted_kmi = True if ack_build == "ack" else False,
+                trim_nonlisted_kmi = True if ack_build == "ack" and symbol_list != None else False,
                 additional_kmi_symbol_lists = additional_symbol_lists + KMI_white_list,
                 kmi_symbol_list_strict_mode = False,
                 collect_unstripped_modules = True,
