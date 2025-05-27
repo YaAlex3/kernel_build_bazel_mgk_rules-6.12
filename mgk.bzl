@@ -125,7 +125,9 @@ def define_mgk(
         platform_device_userdebug_modules,
         device_user_modules,
         platform_device_user_modules,
-        symbol_list):
+        symbol_list,
+        additional_symbol_lists,
+        KMI_white_list):
     mgk_defconfig_overlays = []
     for o in DEFCONFIG_OVERLAYS.split(" "):
         if o != "":
@@ -251,7 +253,10 @@ def define_mgk(
                 module_outs = common_eng_modules if ack_build == "eng" else common_userdebug_modules if ack_build == "userdebug" else common_user_modules if ack_build == "user" else [],
                 module_implicit_outs = common_modules if ack_build == "ack" else [],
                 base_kernel = None,
-                trim_nonlisted_kmi = False,
+                trim_nonlisted_kmi = True if ack_build == "ack" else False,
+                kmi_symbol_list = symbol_list,
+                additional_kmi_symbol_lists = additional_symbol_lists,
+                kmi_symbol_list_strict_mode = True if ack_build == "ack" else False,
                 generated_headers_for_module = _GENERATED_HEADERS_FOR_MODULE,
             )
             kernel_compile_commands(
@@ -295,7 +300,8 @@ def define_mgk(
                 generated_headers_for_module = _GENERATED_HEADERS_FOR_MODULE if kernel_version == "mainline" else [],
                 # ABI
                 kmi_symbol_list = symbol_list,
-                trim_nonlisted_kmi = False,
+                trim_nonlisted_kmi = True if ack_build == "ack" else False,
+                additional_kmi_symbol_lists = additional_symbol_lists + KMI_white_list,
                 kmi_symbol_list_strict_mode = False,
                 collect_unstripped_modules = True,
             )
@@ -306,16 +312,18 @@ def define_mgk(
         # internal
         kernel_abi(
             name = "{}.{}_internal_abi".format(name, build),
-            kernel_modules = [
-                #":{}_modules.{}".format(name, build),
-            ] + select({
-                "//build/bazel_mgk_rules:kernel_version_6.12"     : ["{}.{}.{}.{}".format(m, name, "6.12", build) for m in kleaf_internal],
-                "//build/bazel_mgk_rules:kernel_version_mainline": ["{}.{}.{}.{}".format(m, name, "mainline", build) for m in kleaf_internal],
-                "//conditions:default"                           : ["{}.{}".format(m, build) for m in kleaf_internal],
-            }),
+            kernel_modules = ["{}.{}.{}.{}".format(m, name, kernel_version, build) for m in real_kleaf_device_modules]
+                + (["{}.{}.{}.{}".format(m, name, kernel_version, build) for m in real_kleaf_user_device_modules] if build == "user" else [])
+                + (["{}.{}.{}.{}".format(m, name, kernel_version, build) for m in real_kleaf_userdebug_device_modules] if build == "userdebug" else [])
+                + (["{}.{}.{}.{}".format(m, name, kernel_version, build) for m in real_kleaf_eng_device_modules] if build == "eng" else [])
+                + select({
+                    "//build/bazel_mgk_rules:kernel_version_6.12"     : ["{}.{}.{}.{}".format(m, name, "6.12", build) for m in kleaf_internal],
+                    "//build/bazel_mgk_rules:kernel_version_mainline": ["{}.{}.{}.{}".format(m, name, "mainline", build) for m in kleaf_internal],
+                    "//conditions:default"                           : ["{}.{}".format(m, build) for m in kleaf_internal],
+                }),
             kernel_build = ":{}.{}".format(name, build),
             #abi_definition_xml = "android/abi_gki_aarch64.xml",
-            abi_definition_stg = "android/abi_gki_aarch64.stg",
+            abi_definition_stg = "//kernel-{}:gki/aarch64/abi.stg".format(kernel_version),
             kmi_symbol_list_add_only = True,
             kmi_enforced = True,
             module_grouping = False,
@@ -323,16 +331,18 @@ def define_mgk(
         # customer
         kernel_abi(
             name = "{}.{}_customer_abi".format(name, build),
-            kernel_modules = [
-                #":{}_modules.{}".format(name, build),
-            ] + select({
-                "//build/bazel_mgk_rules:kernel_version_6.12"     : ["{}.{}.{}.{}".format(m, name, "6.12", build) for m in kleaf_customer],
-                "//build/bazel_mgk_rules:kernel_version_mainline": ["{}.{}.{}.{}".format(m, name, "mainline", build) for m in kleaf_customer],
-                "//conditions:default"                           : ["{}.{}".format(m, build) for m in kleaf_customer],
-            }),
+            kernel_modules = ["{}.{}.{}.{}".format(m, name, kernel_version, build) for m in real_kleaf_device_modules]
+                + (["{}.{}.{}.{}".format(m, name, kernel_version, build) for m in real_kleaf_user_device_modules] if build == "user" else [])
+                + (["{}.{}.{}.{}".format(m, name, kernel_version, build) for m in real_kleaf_userdebug_device_modules] if build == "userdebug" else [])
+                + (["{}.{}.{}.{}".format(m, name, kernel_version, build) for m in real_kleaf_eng_device_modules] if build == "eng" else [])
+                + select({
+                    "//build/bazel_mgk_rules:kernel_version_6.12"     : ["{}.{}.{}.{}".format(m, name, "6.12", build) for m in kleaf_customer],
+                    "//build/bazel_mgk_rules:kernel_version_mainline": ["{}.{}.{}.{}".format(m, name, "mainline", build) for m in kleaf_customer],
+                    "//conditions:default"                           : ["{}.{}".format(m, build) for m in kleaf_customer],
+                }),
             kernel_build = ":{}.{}".format(name, build),
             #abi_definition_xml = "android/abi_gki_aarch64.xml",
-            abi_definition_stg = "android/abi_gki_aarch64.stg",
+            abi_definition_stg = "//kernel-{}:gki/aarch64/abi.stg".format(kernel_version),
             kmi_symbol_list_add_only = True,
             kmi_enforced = True,
             module_grouping = False,
