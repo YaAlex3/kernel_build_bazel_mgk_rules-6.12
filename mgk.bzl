@@ -18,6 +18,7 @@ load("@mgk_info//:dict.bzl",
     "DEFCONFIG_OVERLAYS",
     "SUPPORT_PLATFORM",
 )
+load(":merged_uapi_headers.bzl", "merged_uapi_headers")
 load("@mgk_info//:kernel_version.bzl",
      "kernel_version",
 )
@@ -393,6 +394,15 @@ def define_mgk(
                 "//conditions:default"                           : ["{}.{}".format(m, build) for m in (kleaf_user_internal + real_kleaf_user_device_modules)],
             }) if build == "user" else []),
         )
+
+        if build != "ack":
+            merged_uapi_headers(
+                name = "{}_merged_uapi_headers.{}".format(name, build),
+                uapi_headers = [
+                    ":{}_kernel_aarch64.{}_uapi_headers".format(name, build),
+                    "//kernel_device_modules-6.12:mtk_uapi_tarball",
+                ],
+            )
         if build == "ack":
             pkg_files(
                 name = "{}_internal_dist_files.{}".format(name, build),
@@ -428,6 +438,7 @@ def define_mgk(
                 + [
                     ":{}.{}".format(name, build),
                     ":{}_internal_modules_install.{}".format(name, build),
+                    ":{}_merged_uapi_headers.{}".format(name, build),
                 ] + ([":{}.{}/{}".format(name, build, m) for m in common_user_modules] if build == "user" else []),
                 strip_prefix = strip_prefix.from_root(),
                 visibility = ["//visibility:private"],
@@ -503,6 +514,7 @@ def define_mgk(
                 + [
                     ":{}.{}".format(name, build),
                     ":{}_customer_modules_install.{}".format(name, build),
+                    ":{}_merged_uapi_headers.{}".format(name, build),
                 ] + ([":{}.{}/{}".format(name, build, m) for m in common_user_modules] if build == "user" else []),
                 strip_prefix = strip_prefix.from_root(),
                 visibility = ["//visibility:private"],
