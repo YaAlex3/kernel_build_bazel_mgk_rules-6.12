@@ -9,6 +9,7 @@ load(
     "kernel_abi",
     "kernel_abi_dist",
     "kernel_build",
+    "kernel_images",
     "kernel_module",
     "kernel_modules_install",
 )
@@ -127,7 +128,8 @@ def define_mgk(
         symbol_list,
         additional_symbol_lists,
         KMI_white_list,
-        dtb_files = None):
+        dtb_files = None,
+        dtbo_config = None):
     mgk_defconfig_overlays = []
     for o in DEFCONFIG_OVERLAYS.split(" "):
         if o != "":
@@ -310,6 +312,14 @@ def define_mgk(
                     name = "compile_commands_{}.{}".format(name, build),
                     deps = ["{}.{}".format(name, build)],
                 )
+            kernel_images(
+                name = "{}_kernel_images.{}".format(name, build),
+                kernel_build = ":{}.{}".format(name, build),
+                build_dtbo = True,
+                dtbo_srcs = ["//kernel_device_modules-6.12/arch/arm64/boot/dts:mtk_dtbo"],
+                dtbo_config = dtbo_config,
+                kernel_modules_install = ":{}_customer_modules_install.{}".format(name, build),
+            )
         # internal
         kernel_abi(
             name = "{}.{}_internal_abi".format(name, build),
@@ -415,6 +425,7 @@ def define_mgk(
                 }) + [
                     ":{}.{}".format(name, build),
                     ":{}_internal_modules_install.{}".format(name, build),
+                    ":{}_kernel_images.{}".format(name, build),
                 ],
                 strip_prefix = strip_prefix.from_root(),
                 visibility = ["//visibility:private"],
@@ -440,6 +451,7 @@ def define_mgk(
                 + [
                     ":{}.{}".format(name, build),
                     ":{}_internal_modules_install.{}".format(name, build),
+                    ":{}_kernel_images.{}".format(name, build),
                     ":{}_merged_uapi_headers.{}".format(name, build),
                 ] + ([":{}.{}/{}".format(name, build, m) for m in common_user_modules] if build == "user" else []),
                 strip_prefix = strip_prefix.from_root(),
@@ -491,6 +503,7 @@ def define_mgk(
                 }) + [
                     ":{}.{}".format(name, build),
                     ":{}_customer_modules_install.{}".format(name, build),
+                    ":{}_kernel_images.{}".format(name, build),
                 ],
                 strip_prefix = strip_prefix.from_root(),
                 visibility = ["//visibility:private"],
@@ -516,6 +529,7 @@ def define_mgk(
                 + [
                     ":{}.{}".format(name, build),
                     ":{}_customer_modules_install.{}".format(name, build),
+                    ":{}_kernel_images.{}".format(name, build),
                     ":{}_merged_uapi_headers.{}".format(name, build),
                 ] + ([":{}.{}/{}".format(name, build, m) for m in common_user_modules] if build == "user" else []),
                 strip_prefix = strip_prefix.from_root(),
