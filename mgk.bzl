@@ -299,7 +299,11 @@ def define_mgk(
                 }) if build == "ack" else ":{}_kernel_aarch64.{}".format(name, build),
                 module_signing_key = "certs/mtk_signing_key.pem",
                 modules_prepare_force_generate_headers = True if kernel_version == "6.12" else False,
-                dtstree = "//kernel_device_modules-6.12/arch/arm64/boot/dts:mtk_dt" if dtb_files else None,
+                dtstree = select({
+                    "//build/bazel_mgk_rules:kernel_version_6.12"     : "//kernel_device_modules-{}/arch/arm64/boot/dts:mtk_dt".format("6.12"),
+                    "//build/bazel_mgk_rules:kernel_version_mainline": "//kernel_device_modules-{}/arch/arm64/boot/dts:mtk_dt".format("mainline"),
+                    "//conditions:default"                           : "//kernel_device_modules/arch/arm64/boot/dts:mtk_dt",
+                }) if dtb_files else None,
                 generated_headers_for_module = _GENERATED_HEADERS_FOR_MODULE if kernel_version == "mainline" else [],
                 # ABI
                 kmi_symbol_list = symbol_list,
@@ -316,7 +320,11 @@ def define_mgk(
                 name = "{}_kernel_images.{}".format(name, build),
                 kernel_build = ":{}.{}".format(name, build),
                 build_dtbo = True,
-                dtbo_srcs = ["//kernel_device_modules-6.12/arch/arm64/boot/dts:mtk_dtbo"],
+                dtbo_srcs = select({
+                    "//build/bazel_mgk_rules:kernel_version_6.12"     : ["//kernel_device_modules-{}/arch/arm64/boot/dts:mtk_dtbo".format("6.12")],
+                    "//build/bazel_mgk_rules:kernel_version_mainline": ["//kernel_device_modules-{}/arch/arm64/boot/dts:mtk_dtbo".format("mainline")],
+                    "//conditions:default"                           : ["//kernel_device_modules/arch/arm64/boot/dts:mtk_dtbo"],
+                }),
                 dtbo_config = dtbo_config,
                 kernel_modules_install = ":{}_customer_modules_install.{}".format(name, build),
             )
@@ -412,8 +420,11 @@ def define_mgk(
                 name = "{}_merged_uapi_headers.{}".format(name, build),
                 uapi_headers = [
                     ":{}_kernel_aarch64.{}_uapi_headers".format(name, build),
-                    "//kernel_device_modules-6.12:mtk_uapi_tarball",
-                ],
+                ] + select({
+                    "//build/bazel_mgk_rules:kernel_version_6.12"     : ["//kernel_device_modules-{}:mtk_uapi_tarball".format("6.12")],
+                    "//build/bazel_mgk_rules:kernel_version_mainline": ["//kernel_device_modules-{}:mtk_uapi_tarball".format("mainline")],
+                    "//conditions:default"                           : ["//kernel_device_modules:mtk_uapi_tarball"],
+                }),
             )
         if build == "ack":
             pkg_files(
