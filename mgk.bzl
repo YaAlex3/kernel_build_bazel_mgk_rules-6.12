@@ -129,7 +129,8 @@ def define_mgk(
         additional_symbol_lists,
         KMI_white_list,
         dtb_files = None,
-        dtbo_config = None):
+        dtbo_config = None,
+        build_dtbo_image = False):
     mgk_defconfig_overlays = []
     for o in DEFCONFIG_OVERLAYS.split(" "):
         if o != "":
@@ -316,18 +317,19 @@ def define_mgk(
                     name = "compile_commands_{}.{}".format(name, build),
                     deps = ["{}.{}".format(name, build)],
                 )
-            kernel_images(
-                name = "{}_kernel_images.{}".format(name, build),
-                kernel_build = ":{}.{}".format(name, build),
-                build_dtbo = True,
-                dtbo_srcs = select({
-                    "//build/bazel_mgk_rules:kernel_version_6.12"     : ["//kernel_device_modules-{}/arch/arm64/boot/dts:mtk_dtbo".format("6.12")],
-                    "//build/bazel_mgk_rules:kernel_version_mainline": ["//kernel_device_modules-{}/arch/arm64/boot/dts:mtk_dtbo".format("mainline")],
-                    "//conditions:default"                           : ["//kernel_device_modules/arch/arm64/boot/dts:mtk_dtbo"],
-                }),
-                dtbo_config = dtbo_config,
-                kernel_modules_install = ":{}_customer_modules_install.{}".format(name, build),
-            )
+            if build_dtbo_image:
+                kernel_images(
+                    name = "{}_kernel_images.{}".format(name, build),
+                    kernel_build = ":{}.{}".format(name, build),
+                    build_dtbo = True,
+                    dtbo_srcs = select({
+                        "//build/bazel_mgk_rules:kernel_version_6.12"     : ["//kernel_device_modules-{}/arch/arm64/boot/dts:mtk_dtbo".format("6.12")],
+                        "//build/bazel_mgk_rules:kernel_version_mainline": ["//kernel_device_modules-{}/arch/arm64/boot/dts:mtk_dtbo".format("mainline")],
+                        "//conditions:default"                           : ["//kernel_device_modules/arch/arm64/boot/dts:mtk_dtbo"],
+                    }),
+                    dtbo_config = dtbo_config,
+                    kernel_modules_install = ":{}_customer_modules_install.{}".format(name, build),
+                )
         # internal
         kernel_abi(
             name = "{}.{}_internal_abi".format(name, build),
@@ -436,8 +438,7 @@ def define_mgk(
                 }) + [
                     ":{}.{}".format(name, build),
                     ":{}_internal_modules_install.{}".format(name, build),
-                    ":{}_kernel_images.{}".format(name, build),
-                ],
+                ] + ([":{}_kernel_images.{}".format(name, build)] if build_dtbo_image else []),
                 strip_prefix = strip_prefix.from_root(),
                 visibility = ["//visibility:private"],
             )
@@ -462,9 +463,8 @@ def define_mgk(
                 + [
                     ":{}.{}".format(name, build),
                     ":{}_internal_modules_install.{}".format(name, build),
-                    ":{}_kernel_images.{}".format(name, build),
                     ":{}_merged_uapi_headers.{}".format(name, build),
-                ] + ([":{}.{}/{}".format(name, build, m) for m in common_user_modules] if build == "user" else []),
+                ] + ([":{}.{}/{}".format(name, build, m) for m in common_user_modules] if build == "user" else []) + ([":{}_kernel_images.{}".format(name, build)] if build_dtbo_image else []),
                 strip_prefix = strip_prefix.from_root(),
                 visibility = ["//visibility:private"],
             )
@@ -514,8 +514,7 @@ def define_mgk(
                 }) + [
                     ":{}.{}".format(name, build),
                     ":{}_customer_modules_install.{}".format(name, build),
-                    ":{}_kernel_images.{}".format(name, build),
-                ],
+                ] + ([":{}_kernel_images.{}".format(name, build)] if build_dtbo_image else []),
                 strip_prefix = strip_prefix.from_root(),
                 visibility = ["//visibility:private"],
             )
@@ -540,9 +539,8 @@ def define_mgk(
                 + [
                     ":{}.{}".format(name, build),
                     ":{}_customer_modules_install.{}".format(name, build),
-                    ":{}_kernel_images.{}".format(name, build),
                     ":{}_merged_uapi_headers.{}".format(name, build),
-                ] + ([":{}.{}/{}".format(name, build, m) for m in common_user_modules] if build == "user" else []),
+                ] + ([":{}.{}/{}".format(name, build, m) for m in common_user_modules] if build == "user" else []) + ([":{}_kernel_images.{}".format(name, build)] if build_dtbo_image else []),
                 strip_prefix = strip_prefix.from_root(),
                 visibility = ["//visibility:private"],
             )
