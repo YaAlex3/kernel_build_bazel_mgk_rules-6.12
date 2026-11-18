@@ -12,10 +12,8 @@ load(
     "kernel_module",
     "kernel_modules_install",
 )
-load(
-    "//build/bazel_common_rules/dist:dist.bzl",
-    "copy_to_dist_dir",
-)
+load("@rules_pkg//pkg:install.bzl", "pkg_install")
+load("@rules_pkg//pkg:mappings.bzl", "pkg_files", "strip_prefix")
 load("@mgk_info//:dict.bzl",
     "DEFCONFIG_OVERLAYS",
     "SUPPORT_PLATFORM",
@@ -396,9 +394,9 @@ def define_mgk(
             }) if build == "user" else []),
         )
         if build == "ack":
-            copy_to_dist_dir(
-                name = "{}_internal_dist.{}".format(name, build),
-                data = select({
+            pkg_files(
+                name = "{}_internal_dist_files.{}".format(name, build),
+                srcs = select({
                     "//build/bazel_mgk_rules:kernel_version_6.12"     : ["//{}-{}:kernel_aarch64_debug".format("common", "6.12")],
                     "//build/bazel_mgk_rules:kernel_version_mainline": ["//{}-{}:kernel_aarch64_debug".format("common", "mainline")],
                     "//conditions:default"                           : [],
@@ -406,12 +404,19 @@ def define_mgk(
                     ":{}.{}".format(name, build),
                     ":{}_internal_modules_install.{}".format(name, build),
                 ],
-                flat = False,
+                strip_prefix = strip_prefix.from_root(),
+                visibility = ["//visibility:private"],
+            )
+            pkg_install(
+                name = "{}_internal_dist.{}".format(name, build),
+                srcs = [":{}_internal_dist_files.{}".format(name, build)],
+                destdir = "dist",
+                visibility = ["//visibility:public"],
             )
         else:
-            copy_to_dist_dir(
-                name = "{}_internal_dist.{}".format(name, build),
-                data = select({
+            pkg_files(
+                name = "{}_internal_dist_files.{}".format(name, build),
+                srcs = select({
                     "//build/bazel_mgk_rules:kernel_version_6.12"     : [":{}_kernel_aarch64.{}".format(name, build)],
                     "//build/bazel_mgk_rules:kernel_version_mainline": [":{}_kernel_aarch64.{}".format(name, build)],
                     "//conditions:default"                           : ["//kernel:kernel_aarch64.{}".format(build)],
@@ -424,7 +429,14 @@ def define_mgk(
                     ":{}.{}".format(name, build),
                     ":{}_internal_modules_install.{}".format(name, build),
                 ] + ([":{}.{}/{}".format(name, build, m) for m in common_user_modules] if build == "user" else []),
-                flat = False,
+                strip_prefix = strip_prefix.from_root(),
+                visibility = ["//visibility:private"],
+            )
+            pkg_install(
+                name = "{}_internal_dist.{}".format(name, build),
+                srcs = [":{}_internal_dist_files.{}".format(name, build)],
+                destdir = "dist",
+                visibility = ["//visibility:public"],
             )
         # customer
         kernel_modules_install(
@@ -457,9 +469,9 @@ def define_mgk(
             kernel_build = ":{}.{}".format(name, build),
         )
         if build == "ack":
-            copy_to_dist_dir(
-                name = "{}_customer_dist.{}".format(name, build),
-                data = select({
+            pkg_files(
+                name = "{}_customer_dist_files.{}".format(name, build),
+                srcs = select({
                     "//build/bazel_mgk_rules:kernel_version_6.12"     : ["//{}-{}:kernel_aarch64_debug".format("common", "6.12")],
                     "//build/bazel_mgk_rules:kernel_version_mainline": ["//{}-{}:kernel_aarch64_debug".format("common", "mainline")],
                     "//conditions:default"                           : [],
@@ -467,12 +479,19 @@ def define_mgk(
                     ":{}.{}".format(name, build),
                     ":{}_customer_modules_install.{}".format(name, build),
                 ],
-                flat = False,
+                strip_prefix = strip_prefix.from_root(),
+                visibility = ["//visibility:private"],
+            )
+            pkg_install(
+                name = "{}_customer_dist.{}".format(name, build),
+                srcs = [":{}_customer_dist_files.{}".format(name, build)],
+                destdir = "dist",
+                visibility = ["//visibility:public"],
             )
         else:
-            copy_to_dist_dir(
-                name = "{}_customer_dist.{}".format(name, build),
-                data = select({
+            pkg_files(
+                name = "{}_customer_dist_files.{}".format(name, build),
+                srcs = select({
                     "//build/bazel_mgk_rules:kernel_version_6.12"     : [":{}_kernel_aarch64.{}".format(name, build)],
                     "//build/bazel_mgk_rules:kernel_version_mainline": [":{}_kernel_aarch64.{}".format(name, build)],
                     "//conditions:default"                           : ["//kernel:kernel_aarch64.{}".format(build)],
@@ -485,7 +504,14 @@ def define_mgk(
                     ":{}.{}".format(name, build),
                     ":{}_customer_modules_install.{}".format(name, build),
                 ] + ([":{}.{}/{}".format(name, build, m) for m in common_user_modules] if build == "user" else []),
-                flat = False,
+                strip_prefix = strip_prefix.from_root(),
+                visibility = ["//visibility:private"],
+            )
+            pkg_install(
+                name = "{}_customer_dist.{}".format(name, build),
+                srcs = [":{}_customer_dist_files.{}".format(name, build)],
+                destdir = "dist",
+                visibility = ["//visibility:public"],
             )
 
     kernel_module(
